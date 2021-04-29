@@ -4,7 +4,11 @@ import sklearn.datasets as datasets
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score
+<<<<<<< HEAD
 # silhouette_score : 개별 데이터가 가지는 군집화 지표인 실루엣 계수에 대해 평균 계산. 10.7.6 참고.
+=======
+# silhouette_score : 개별 데이터가 가지는 군집화 지표인 실루엣 계수에 대해 평균 계산. (https://ariz1623.tistory.com/224)
+>>>>>>> 25dc8451a7a499b5373c3b9de667142ad237a100
 # adjusted_rand_score : 두 클러스터링 간의 유사성 측정값 계산. 확률에 따라 rand score를 재 조정.
 # rand_score : 군집화 결과와 정답의 유사성 측정.
 from sklearn import metrics
