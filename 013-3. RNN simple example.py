@@ -17,11 +17,12 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.layers.recurrent import LSTM
 from sklearn.model_selection import train_test_split
-import statsmodels as sm
+import statsmodels.api as sm
 import pandas as pd
 
 # Dataset Loading
 # numpy 업데이트 하고 나니 데이터를 못불러온다 ㅡㅡ....
+ ## Spyder 껏다 켜보자....
 # https://www.statsmodels.org/stable/datasets/generated/elnino.html
 # https://tedboy.github.io/statsmodels_doc/generated/statsmodels.datasets.elnino.html
 # datasets는 statsmodels.api 에 있음.
@@ -55,10 +56,10 @@ model.add(Dense(1, activation='sigmoid'))
 model.compile(loss='mean_squared_error', optimizer='adadelta')
 
 # Learning begin
-model.fit(X_train.values.reshape((54, 11, 1)), Y_train, epochs=5)
+model.fit(X_train.reshape((54, 11, 1)), Y_train, epochs=5)
 
 # 모델 평가
-proba = model.predict_proba(X_test.values.reshape((7, 11, 1)), batch_size=32)
+proba = model.predict_proba(X_test.reshape((7, 11, 1)), batch_size=32)
 pred = pd.Series(proba.flatten())
 true = pd.Series(Y_test.flatten())
 print('예측값과 실제값의 상관계수 : ', pred.corr(true))
