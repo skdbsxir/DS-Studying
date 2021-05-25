@@ -39,6 +39,13 @@ plt.scatter(preds_linear, Y_test)
 # 당시 문제 1) 잔차가 정규분포를 따르지 않음.
 # 당시 문제 2) 각 변수와 잔차 간 그래프가 상관성이 있어보임.
 # 당시 찾았던 해결책 - Robust Regression, Generalized Regression.
+"""
+추가 해결책? https://statisticsbyjim.com/regression/multicollinearity-in-regression-analysis/
+LASSO and Ridge regression are advanced forms of regression analysis that can handle multicollinearity. 
+If you know how to perform linear least squares regression, you’ll be able to handle these analyses with just a little additional study.
+
+추가 해결책? https://mindscale.kr/course/basic-stat-python/13/
+"""
 
 # LinearRegression보다 ols가 더 친절하게 잘나오고 warnings도 잘띄워준다.
 linear = ols('Y ~ X', data = df).fit()
@@ -63,10 +70,7 @@ fig = sm.graphics.plot_regress_exog(linear, 'X', fig=fig)
 # jamovi에서 해봤던 것 처럼 잔차 그래프가 요상하게 나온다!
 
 # 그럼 이걸 이제 어떻게 해결할까...
+# 봤던 해결책 중에서 GLM 을 써볼까?
+# https://www.statsmodels.org/stable/glm.html
 
-
-
-
-
-
-
+# 뭔가...뭔가.....아닌거같은데....
