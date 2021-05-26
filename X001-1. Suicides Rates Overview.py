@@ -25,7 +25,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings # KorDF.loc할때 warning무시하자. 원본에 영향미쳐서 뜨는 경고라는데, 원본에 영향을 미치려고 한거니까...
- 
+import datetime
+
 warnings.filterwarnings('ignore')
 
 df = pd.read_csv('C:\\Users\\skdbs\\Desktop\\todoData\\fixed_suicide.csv')
@@ -120,14 +121,41 @@ print(KorDF['HDI_for_year'].describe())
 
 #print(KorDF1990['HDI_for_year'])
 
+"""
 # 이러지말고, 그냥 KorDF에서 HDI_for_year가 비어있는 있음 사이의 행을 골라서
 # 양 값의 평균치로 넣어볼까?
 KorDF.loc[KorDF['year'] < 1990, 'HDI_for_year'] = 0.711
 KorDF.loc[KorDF['year'] > 1990 & KorDF['year'] < 2000, 'HDI_for_year'] = 0.778
 KorDF.loc[KorDF['year'] > 2000 & KorDF['year'] < 2010, 'HDI_for_year'] = 0.856
 KorDF.loc[KorDF['year'] > 2010 & KorDF['year'] < 2015, 'HDI_for_year'] = 0.898
-
-print(KorDF['HDI_for_year'].describe())
+"""
+# print(KorDF['HDI_for_year'].describe())
 # 이이이이으으읭이이이긱ㄱ
 # 그냥 엑셀에서 넣을까.... 존나 큰 데이터도 아니고...
+
+# https://rfriend.tistory.com/264 
+# 시계열 데이터 결측값 보간법이 있긴하다. interpolate()
+
+# KorDF['HDI_for_year'].interpolate(method='values')
+# print(KorDF['HDI_for_year'].describe())
+# print(KorDF[['HDI_for_year']].isnull()) # 채웠을텐데 왜 True가 나오지
+# year가 float로 되어있어서 그런가?
+KorDF['year'] = pd.to_datetime(KorDF['year'], format='%Y')
+# print(KorDF['year'].dtypes) # datetime64로 변경됨.
+# print(KorDF['year'].head) # 근데 01-01까지 같이 붙어서 오는데...이건 뭐 어떻게 못하나.
+
+# KorDF['year'] = pd.DatetimeIndex(KorDF['year']).year
+# orDF['year'] = pd.to_datetime(KorDF['year']).dt.strftime('%Y')
+# KorDF['year'] = KorDF['year'].dt.year # 이건 datetime형에서만 쓸수있음.
+KorDF['year'] = KorDF['year'].dt.to_period('Y')
+# print(KorDF['year'].head)
+# 날짜형식 타입으로 변환 된거같은데???
+KorDF.set_index('year', inplace=True)
+# print(KorDF.index) # year가 멀쩡히 index로 설정 됐음.
+KorDF.interpolate(method='values', limit_direction='backward')
+print(KorDF[['HDI_for_year']].isnull())
+# KorDF.to_csv('C:\\Users\\skdbs\\Desktop\\todoData\\KOR_suicide.csv', mode='w')
+print(KorDF.isnull().sum()) # 왜 결측이생기지
+
+
 
