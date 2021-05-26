@@ -152,10 +152,9 @@ KorDF['year'] = KorDF['year'].dt.to_period('Y')
 # 날짜형식 타입으로 변환 된거같은데???
 KorDF.set_index('year', inplace=True)
 # print(KorDF.index) # year가 멀쩡히 index로 설정 됐음.
-KorDF.interpolate(method='values', limit_direction='backward')
-print(KorDF[['HDI_for_year']].isnull())
+KorDF.interpolate(method='time')
+# print(KorDF[['HDI_for_year']].isnull())
 # KorDF.to_csv('C:\\Users\\skdbs\\Desktop\\todoData\\KOR_suicide.csv', mode='w')
 print(KorDF.isnull().sum()) # 왜 결측이생기지
-
-
-
+# 으아아앟아항하앟앙유유ㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠ
+# 그냥 엑셀에서 수정하자....
