@@ -98,13 +98,14 @@ KorDF.loc[KorDF['year']==2015, 'HDI_for_year'] = 0.907
 # 일단 값은 제대로 들어감.
 # print(KorDF['HDI_for_year'].describe())
 # KorDF.to_csv('C:\\Users\\skdbs\\Desktop\\todoData\\KOR_suicide.csv', mode='w')
-
+"""
 print('<Germany>')
 print(GerDF['HDI_for_year'].describe())
 print('<Japan>')
 print(JapDF['HDI_for_year'].describe())
 print('<Republic of Korea>')
 print(KorDF['HDI_for_year'].describe())
+"""
 
 # 이제 결측값을 처리해야하는데...
 # 평균치로 넣는게 제일 나을 것 같다. 소수점 네번째에서 반올림.
@@ -112,4 +113,21 @@ print(KorDF['HDI_for_year'].describe())
 # ㄴㄴ. HDI도 연도에 따라 증가하는 추세인데, 무작정 평균치로 넣으면 좀 거시기할듯.
  # (있음) (없음) (있음) 에서 양 있음의 평균치로 일일이 넣기? 아니면 작년도 + std 해서 넣기? 이건 값이 너무 커질듯.
  # 양 있음의 평균치로 일일이 넣는게 나을 것 같다.
+
+# KorDF에서 year가 1990인 레코드의 HDI_for_year를 찾아라.
+#KorDF1990 = KorDF[KorDF['year'] == 1990]
+#KorDF2000 = KorDF[KorDF['year'] == 2000]
+
+#print(KorDF1990['HDI_for_year'])
+
+# 이러지말고, 그냥 KorDF에서 HDI_for_year가 비어있는 있음 사이의 행을 골라서
+# 양 값의 평균치로 넣어볼까?
+KorDF.loc[KorDF['year'] < 1990, 'HDI_for_year'] = 0.711
+KorDF.loc[KorDF['year'] > 1990 & KorDF['year'] < 2000, 'HDI_for_year'] = 0.778
+KorDF.loc[KorDF['year'] > 2000 & KorDF['year'] < 2010, 'HDI_for_year'] = 0.856
+KorDF.loc[KorDF['year'] > 2010 & KorDF['year'] < 2015, 'HDI_for_year'] = 0.898
+
+print(KorDF['HDI_for_year'].describe())
+# 이이이이으으읭이이이긱ㄱ
+# 그냥 엑셀에서 넣을까.... 존나 큰 데이터도 아니고...
 
