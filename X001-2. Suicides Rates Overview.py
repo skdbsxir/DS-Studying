@@ -6,6 +6,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.optimize import curve_fit
+from sklearn import preprocessing
 
 warnings.filterwarnings('ignore')
 
@@ -65,6 +66,7 @@ KorDF = newDf[newDf['country'] == 'Republic of Korea']
 #print(JapDF)
 #print(KorDF)
 
+"""
 # fig = sns.heatmap(data = KorDF.corr(), annot=True, fmt = '.3f', cmap='Blues')
 # fig.set_xticklabels(fig.get_xticklabels(), rotation = 0)
 # plt.title('<Correlation of variables>')
@@ -80,6 +82,7 @@ print(fittedModel.summary()) # 결정계수가 전에 했던거보단 괜찮게 
 print(fittedModel2.summary())
 # print(fittedModel.params) # HDI_for_year가 -829.05즘, 나머지 두개가 0.002, 0.042
 # print(fittedModel2.params) # HDI가 -34.069, population이 0.000207.
+"""
 """
 fittedModel.resid.plot()
 plt.title('Model Residual')
@@ -109,3 +112,21 @@ print(vif2) # HDI == population (4.553737) 어케이게 똑같이나오지
  ## 2. 다중공선성 문제. 변수선택 or PCA 활용.
 # 느낌이 HDI는 소수점, population은 숫자가 매우 커서 나오는 거 같다.
 
+# 스케일링을 한번 해보자.
+"""
+target = KorDF[['suicides_no']]
+feature_names = KorDF[['HDI_for_year', 'population', 'gdp_per_capita_($)']]
+feature_names = ["scale({})".format(name) for name in feature_names]
+myModel3 = sm.OLS(target, feature_names)
+result3 = myModel3.fit()
+print(result3.summary())
+"""
+target = KorDF[['suicides_no']]
+X_data = KorDF[['HDI_for_year', 'population', 'gdp_per_capita_($)']]
+scaler = preprocessing.StandardScaler().fit(X_data)
+X_scaled = scaler.transform(X_data)
+
+myModel4 = sm.OLS(target, X_scaled)
+result4 = myModel4.fit()
+print(result4.summary()) ## 조건수 크다는 문제는 안나왔다 무야호~~~~~~~~
+# 근데 R스퀘어 값이 좀....
