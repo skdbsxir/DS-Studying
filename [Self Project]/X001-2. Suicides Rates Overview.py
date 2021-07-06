@@ -11,7 +11,7 @@ from sklearn import preprocessing
 warnings.filterwarnings('ignore')
 
 
-df = pd.read_csv('C:\\Users\\skdbs\\Desktop\\todoData\\fixed_suicide_3.csv')
+df = pd.read_csv('C:\\Users\\user\\Desktop\\todoData\\fixed_suicide_3.csv')
 
 # df['HDI_for_year'].plot()
 # plt.scatter(df['year'], df['HDI_for_year'])
@@ -66,11 +66,12 @@ KorDF = newDf[newDf['country'] == 'Republic of Korea']
 #print(JapDF)
 #print(KorDF)
 
-"""
+
 # fig = sns.heatmap(data = KorDF.corr(), annot=True, fmt = '.3f', cmap='Blues')
 # fig.set_xticklabels(fig.get_xticklabels(), rotation = 0)
 # plt.title('<Correlation of variables>')
 # plt.show()
+"""
 X_data = KorDF[['HDI_for_year', 'population', 'gdp_per_capita_($)']]
 X_data2 = KorDF[['HDI_for_year', 'population']]
 target = KorDF[['suicides_no']]
@@ -121,8 +122,15 @@ myModel3 = sm.OLS(target, feature_names)
 result3 = myModel3.fit()
 print(result3.summary())
 """
-target = KorDF[['suicides_no']]
-X_data = KorDF[['HDI_for_year', 'population', 'gdp_per_capita_($)']]
+
+# target이랑 population이 큰 연관
+# target이랑 HDI, gdp, 100k pop 순서대로 연관.
+ ## 근데 HDI, 100k pop이랑 연관이 조금 있어보임
+ ## HDI랑 gdp랑 많이 강한 상관관계가 있음. 
+     ### 근데 생각해보면 국민 gdp가 높으니 행복지수가 높은게 당연한거같기도하고
+# target = KorDF[['suicides_no']]
+"""
+X_data = KorDF[['HDI_for_year', 'population', 'gdp_per_capita_($)']] # R스퀘어 0.242
 scaler = preprocessing.StandardScaler().fit(X_data)
 X_scaled = scaler.transform(X_data)
 
@@ -130,3 +138,14 @@ myModel4 = sm.OLS(target, X_scaled)
 result4 = myModel4.fit()
 print(result4.summary()) ## 조건수 크다는 문제는 안나왔다 무야호~~~~~~~~
 # 근데 R스퀘어 값이 좀....
+"""
+"""
+X_data = KorDF[['population']] # R스퀘어 0.583, 
+scaler = preprocessing.StandardScaler().fit(X_data)
+X_scaled = scaler.transform(X_data) # R스퀘어 0.171
+# myModel5 = sm.OLS(target, X_scaled)
+# result5 = myModel5.fit()
+# print(result5.summary())
+sns.regplot(x = X_scaled, y = target, fit_reg = True)
+"""
+# sns.regplot(x=KorDF['gdp_per_capita_($)'], y=KorDF['HDI_for_year'], fit_reg = True)
