@@ -3,3 +3,6 @@ eng_w2v
 kor_w2v
 ratings.txt
 ted_en-20160408.xml
+han.txt
+corpus.txt
+corpus_token.txt
