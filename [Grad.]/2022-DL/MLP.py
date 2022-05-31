@@ -163,7 +163,7 @@ def main():
 
     print(f"MLP arguments : {args} ")
 
-    # TODO: Argument pass to model configurations.
+    # FIXME: Argument pass to model configurations. => 자잘한 에러?
     # TODO: Train/Test
     # TODO: Train 시 가장 밖 loop에서 K-Fold?
 
