@@ -5,6 +5,9 @@ import numpy as np
 from tqdm.auto import tqdm
 import torch
 
+from Dataset import MovieLensDataset
+from Evaluate import evaluate_model
+
 # Save .csv file to .rating file.
 def save_to_file(df:pd.DataFrame, path):
     print(f'Saving dataframe to path : {path}')
@@ -12,7 +15,6 @@ def save_to_file(df:pd.DataFrame, path):
 
     df.to_csv(path, header=False, index=False, sep='\t')
 
-# TODO: Test function
 # TODO: Train함수 내에서 wandb.init(), wandb.watch(), wandb.log() => need to look more examples
 ## init(project='DeepLearningProject', entity='happysky12')
 ## watch(model, loss_fn, log='all', log_freq=10)
@@ -63,3 +65,12 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, epoch_num, device):
     print(f'Train Loss : {epoch_loss}')
 
     return epoch_loss
+
+# Testing
+def test(model, full_dataset:MovieLensDataset, topK):
+    model.eval()
+    with torch.no_grad():
+        (hits, ndcgs) = evaluate_model(model, full_dataset, topK)
+        hr, ndcg = np.array(hits).mean(), np.array(ndcgs).mean()
+        print(f'[Eval] HR : {hr:.4f}, NDCG : {ndcg:.4f}')
+    return hr, ndcg
