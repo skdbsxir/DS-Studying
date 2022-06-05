@@ -39,6 +39,9 @@ def get_train_test_df(transaction:pd.DataFrame):
     train_df = transaction[last_transaction_mask]
     test_df = transaction[~last_transaction_mask]
 
+    train_df.sort_values(by=["userId", 'timestamp'], inplace=True)
+    test_df.sort_values(by=["userId", 'timestamp'], inplace=True)
+
     return train_df, test_df
 
 # Look dataset's statistics.

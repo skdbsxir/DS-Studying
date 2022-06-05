@@ -32,8 +32,6 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, scheduler, epoch_num
             if type(feed_dict[key]) != type(None):
                 feed_dict[key] = feed_dict[key].to(dtype=torch.long, device=device)
 
-        optimizer.zero_grad()
-
         # get prediction
         # output is sigmoid prob.
         prediction = model(feed_dict)
@@ -48,11 +46,14 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, scheduler, epoch_num
         # calculate loss
         loss = loss_fn(prediction, rating)
 
+        # clear gradients & back prop.
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
         # remember loss in each epoch
         epoch_loss.append(loss.item())
 
-        loss.backward()
-        optimizer.step()
     # Schedule Optimizer
     scheduler.step()
     
@@ -66,10 +67,10 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, scheduler, epoch_num
 # Testing
 def test(model, full_dataset:MovieLensDataset, topK):
     model.eval()
-    with torch.no_grad():
-        (hits, ndcgs) = evaluate_model(model, full_dataset, topK)
-        hr, ndcg = np.array(hits).mean(), np.array(ndcgs).mean()
-        print(f'[Eval] HR : {hr:.4f}, NDCG : {ndcg:.4f}')
+    # with torch.no_grad():
+    (hits, ndcgs) = evaluate_model(model, full_dataset, topK)
+    hr, ndcg = np.array(hits).mean(), np.array(ndcgs).mean()
+    print(f'[Eval] HR : {hr:.4f}, NDCG : {ndcg:.4f}')
 
     return hr, ndcg
 

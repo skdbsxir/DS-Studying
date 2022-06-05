@@ -62,12 +62,12 @@ class MLP(nn.Module):
 
         # FC layers, BN layers를 생성할 ModuleList 정의
         self.fc_layers = nn.ModuleList()
-        # self.bn_layers = nn.ModuleList()
+        self.bn_layers = nn.ModuleList()
 
         # Hidden dense layers
         for _, (in_size, out_size) in enumerate(zip(layers[:-1], layers[1:])):
             self.fc_layers.append(nn.Linear(in_size, out_size))
-            # self.bn_layers.append(nn.BatchNorm1d(out_size))
+            self.bn_layers.append(nn.BatchNorm1d(out_size))
         
         # Output layer
         self.output_layer = nn.Linear(layers[-1], 1)
@@ -95,7 +95,7 @@ class MLP(nn.Module):
         for i, _ in enumerate(range(len(self.fc_layers))):
             x = self.fc_layers[i](x)
             # print(f'현재 {i} 번째 FC  : {self.fc_layers[i]}')
-            # x = self.bn_layers[i](x)
+            x = self.bn_layers[i](x)
             # print(f'현재 {i} 번째 BN : {self.bn_layers[i]}')
             x = F.relu(x)
             x = F.dropout(x, p=self.__dropout__, training=self.training)
@@ -115,7 +115,7 @@ class MLP(nn.Module):
         return self.__alias__
 
 def main():
-    wandb.init()
+    wandb.init(project='DeepLearningProject', entity='happysky12')
     # get arguments from user input.
     args = parse_args()
     wandb.config.update(args)
@@ -168,13 +168,12 @@ def main():
     # Train & Eval
     for epoch in range(epochs):
         epoch_loss = train_one_epoch(model, train_loader, loss_fn, optimizer, scheduler, epoch, device)
-        
-        loss_list.append(epoch_loss)
 
         # test & append
         hr, ndcg = test(model, full_dataset, topK) 
         hr_list.append(hr)
         ndcg_list.append(ndcg)
+        loss_list.append(epoch_loss)
 
         wandb.log({
         "HR" : hr,
