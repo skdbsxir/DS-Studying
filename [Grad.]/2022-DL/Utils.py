@@ -4,6 +4,7 @@ from time import time
 import numpy as np
 from tqdm.auto import tqdm
 import torch
+import matplotlib.pyplot as plt
 
 from Dataset import MovieLensDataset
 from Evaluate import evaluate_model
@@ -15,14 +16,8 @@ def save_to_file(df:pd.DataFrame, path):
 
     df.to_csv(path, header=False, index=False, sep='\t')
 
-# TODO: Train함수 내에서 wandb.init(), wandb.watch(), wandb.log() => need to look more examples
-## init(project='DeepLearningProject', entity='happysky12')
-## watch(model, loss_fn, log='all', log_freq=10)
-## train 다 지나고 나서 log({'Epoch' : epoch, 'loss' : 손실계산식})
-
 # Train
 def train_one_epoch(model, data_loader, loss_fn, optimizer, epoch_num, device):
-    wandb.init(project='DeepLearningProject', entity='happysky12')
 
     print(f'Epoch : {epoch_num+1}')
 
@@ -73,4 +68,22 @@ def test(model, full_dataset:MovieLensDataset, topK):
         (hits, ndcgs) = evaluate_model(model, full_dataset, topK)
         hr, ndcg = np.array(hits).mean(), np.array(ndcgs).mean()
         print(f'[Eval] HR : {hr:.4f}, NDCG : {ndcg:.4f}')
+
     return hr, ndcg
+
+# Plot history
+def plot_statistics(hr_list, ndcg_list, loss_list, model_alias, path):
+    plt.figure()
+    hr = np.array(hr_list)
+    ndcg = np.array(ndcg_list)
+    loss = np.array(loss_list)
+
+    plt.plot(hr[:, 0], hr[:, 1], linestyle='-', marker='o', label='HR')
+    plt.plot(ndcg[:, 0], ndcg[:, 1], linestyle='-', marker='v', label='NDCG')
+    plt.plot(loss[:, 0], loss[:, 1], linestyle='-', marker='s', label='Loss')
+
+    plt.xlabel("Epochs")
+    plt.ylabel("Values")
+    plt.legend()
+    plt.show()
+    plt.savefig(path + model_alias + '.jpg')

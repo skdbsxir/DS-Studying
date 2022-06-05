@@ -4,18 +4,19 @@ import torch.nn.functional as F
 from torch import dropout, nn
 from torch.utils.data import DataLoader
 
-from Utils import train_one_epoch, test
 torch.manual_seed(62)
 
 # Workspace import
 from Dataset import MovieLensDataset
-# from Evaluate import evaluate_model
-# from Utils import train_one_epoch, test
+from Evaluate import evaluate_model
+from Utils import plot_statistics, train_one_epoch, test
 
 # Python imports
 import argparse
 from time import time
 import numpy as np
+import pickle
+import wandb
 
 # CUDA setting
 use_cuda = torch.cuda.is_available()
@@ -30,11 +31,11 @@ def parse_args():
                         help='Input data path.')
     parser.add_argument('--dataset', nargs='?', default='movielens',
                         help='Dataset for use.')
-    parser.add_argument('--epochs', type=int, default=20,
+    parser.add_argument('--epochs', type=int, default=10,
                         help='# of epochs.')
     parser.add_argument('--batch_size', type=int, default=128,
                         help='Batch size.')
-    parser.add_argument('--layers', nargs='?', default='[16, 32, 16, 8]',
+    parser.add_argument('--layers', nargs='?', default='[16,32,16,8]',
                         help='Size of each layer. (Note : First layer is the concatenation of user-item embeddings. So layers[0]/2 is embedding size.)')
     parser.add_argument('--weight_decay', type=float, default=1e-5,
                         help='Regularization for each layer.')
@@ -42,7 +43,7 @@ def parse_args():
                         help='# of negative instance to pair with positive instance while training.')
     parser.add_argument('--num_neg_test', type=int, default=100,
                         help='# of negative instance to pair with positive instance while testing.')
-    parser.add_argument('--lr', type=float, default=1e-3,
+    parser.add_argument('--lr', type=float, default=5e-3,
                         help='Learning rate.')
     parser.add_argument('--dropout', type=float, default=0,
                         help='Add dropout layer after each dense layer, with p=dropout_prop.')
@@ -53,6 +54,7 @@ class MLP(nn.Module):
         super().__init__()
         assert (layers[0] % 2 == 0), 'Layers must be an even number.'
 
+        self.__alias__ = f"MLP_{layers}"
         self.__dropout__ = dropout
 
         # user & item embedding layer
@@ -111,6 +113,9 @@ class MLP(nn.Module):
                 feed_dict[key] = torch.from_numpy(feed_dict[key]).to(dtype=torch.long, device=device)
         output_score = self.forward(feed_dict)
         return output_score.cpu().detach().numpy()
+    
+    def get_alias(self):
+        return self.__alias__
 
 """
 # Model Testing
@@ -148,8 +153,10 @@ print(model.state_dict().keys())
 """
 
 def main():
+    wandb.init()
     # get arguments from user input.
     args = parse_args()
+    wandb.config.update(args)
 
     # Insert inputs to each arguments.
     path = args.path
@@ -164,9 +171,6 @@ def main():
     epochs = args.epochs
 
     print(f"MLP arguments : {args} ")
-
-    # FIXME: Argument pass to model configurations. => 자잘한 에러?
-    # TODO: Train/Test
 
     full_dataset = MovieLensDataset(
         path + dataset, 
@@ -185,6 +189,7 @@ def main():
 
     # Model build & move to GPU
     model = MLP(num_users, num_items, layers = layers, dropout = dropout).to(device)
+    wandb.watch(model)
 
     loss_fn = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), weight_decay=weight_decay)
@@ -203,10 +208,19 @@ def main():
         hr, ndcg = test(model, full_dataset, topK=10) 
         hr_list.append(hr)
         ndcg_list.append(ndcg)
+
+        wandb.log({
+        "HR" : hr,
+        "NDCG" : ndcg,
+        "Loss" : epoch_loss
+        })
     
     print(f'hr for epochs : {hr_list}')
     print(f'ndcg for epochs : {ndcg_list}')
     print(f'loss for epoch : {loss_list}')
+
+    # plot_statistics(hr_list, ndcg_list, loss_list, model.get_alias(), './figs/')
+
 
 if __name__ == "__main__":
     print(f'Using Device <<<< {str(device).upper()} >>>>')
