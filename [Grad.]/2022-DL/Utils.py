@@ -17,7 +17,7 @@ def save_to_file(df:pd.DataFrame, path):
     df.to_csv(path, header=False, index=False, sep='\t')
 
 # Train
-def train_one_epoch(model, data_loader, loss_fn, optimizer, epoch_num, device):
+def train_one_epoch(model, data_loader, loss_fn, optimizer, scheduler, epoch_num, device):
 
     print(f'Epoch : {epoch_num+1}')
 
@@ -53,6 +53,8 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, epoch_num, device):
 
         loss.backward()
         optimizer.step()
+    # Schedule Optimizer
+    scheduler.step()
     
     # calculate total loss in batch
     epoch_loss = np.mean(epoch_loss)
