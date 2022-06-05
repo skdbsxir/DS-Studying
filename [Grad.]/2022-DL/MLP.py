@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 from torch import dropout, nn
 from torch.utils.data import DataLoader
+
+from Utils import train_one_epoch, test
 torch.manual_seed(62)
 
 # Workspace import
@@ -79,23 +81,23 @@ class MLP(nn.Module):
         user_embedding = self.user_embedding(users)
         item_embedding = self.item_embedding(items)
 
-        print(f'user embedding size : {user_embedding.shape}')
-        print(f'user embedding : {user_embedding}')
-        print(f'item embedding size : {item_embedding.shape}')
-        print(f'item embedding : {item_embedding}')
+        # print(f'user embedding size : {user_embedding.shape}')
+        # print(f'user embedding : {user_embedding}')
+        # print(f'item embedding size : {item_embedding.shape}')
+        # print(f'item embedding : {item_embedding}')
         
 
         # Concat 2 embeddings to single embedding.
         x = torch.cat([user_embedding, item_embedding], 1)
-        print(f'Concat embedding size : {x.shape}')
-        print(f'Concat embedding : {x}')
+        # print(f'Concat embedding size : {x.shape}')
+        # print(f'Concat embedding : {x}')
 
         # forward pass
         for i, _ in enumerate(range(len(self.fc_layers))):
             x = self.fc_layers[i](x)
-            print(f'현재 {i} 번째 FC  : {self.fc_layers[i]}')
+            # print(f'현재 {i} 번째 FC  : {self.fc_layers[i]}')
             x = self.bn_layers[i](x)
-            print(f'현재 {i} 번째 BN : {self.bn_layers[i]}')
+            # print(f'현재 {i} 번째 BN : {self.bn_layers[i]}')
             x = F.relu(x)
             x = F.dropout(x, p=self.__dropout__, training=self.training)
         
@@ -165,7 +167,46 @@ def main():
 
     # FIXME: Argument pass to model configurations. => 자잘한 에러?
     # TODO: Train/Test
-    # TODO: Train 시 가장 밖 loop에서 K-Fold?
+
+    full_dataset = MovieLensDataset(
+        path + dataset, 
+        num_negative_train = num_negatives_train,
+        num_negative_test = num_negatives_test,
+    )
+    
+    train, testRatings, testNegatives = full_dataset.trainMatrix, full_dataset.testRatings, full_dataset.testNegatives
+    num_users, num_items = train.shape
+
+    train_loader = DataLoader(
+        full_dataset,
+        batch_size = batch_size,
+        shuffle = True
+    )
+
+    # Model build & move to GPU
+    model = MLP(num_users, num_items, layers = layers, dropout = dropout).to(device)
+
+    loss_fn = nn.BCELoss()
+    optimizer = torch.optim.Adam(model.parameters(), weight_decay=weight_decay)
+
+    hr_list = []
+    ndcg_list = []
+    loss_list = []
+
+    # Train
+    for epoch in range(epochs):
+        epoch_loss = train_one_epoch(model, train_loader, loss_fn, optimizer, epoch, device)
+        
+        loss_list.append(epoch_loss)
+
+        # test & append
+        hr, ndcg = test(model, full_dataset, topK=10) 
+        hr_list.append(hr)
+        ndcg_list.append(ndcg)
+    
+    print(f'hr for epochs : {hr_list}')
+    print(f'ndcg for epochs : {ndcg_list}')
+    print(f'loss for epoch : {loss_list}')
 
 if __name__ == "__main__":
     print(f'Using Device <<<< {str(device).upper()} >>>>')
