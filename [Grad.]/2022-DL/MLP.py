@@ -1,7 +1,7 @@
 # PyTorch import
 import torch 
 import torch.nn.functional as F
-from torch import dropout, nn
+from torch import nn
 from torch.utils.data import DataLoader
 
 torch.manual_seed(62)
@@ -13,7 +13,6 @@ from Utils import plot_statistics, train_one_epoch, test
 # Python imports
 import argparse
 import numpy as np
-import pickle
 import wandb
 
 # CUDA setting
@@ -24,7 +23,7 @@ if device == 'cuda':
     torch.cuda.manual_seed(62)
 
 # Path to save model
-MODEL_PATH = './model/'
+MODEL_PATH = './model_state/'
 
 def parse_args():
     parser = argparse.ArgumentParser(description = 'Run MLP...')
@@ -137,7 +136,7 @@ def main():
 
     print(f"MLP arguments : {args} ")
 
-    model_to_save = MODEL_PATH + 'MLP_layer_%s_dropout_%s_lr_%s.pth' % (args.layers, args.dropout, args.learning_rate)
+    model_to_save = MODEL_PATH + 'MLP_state_layer_%s_dropout_%s_lr_%s_epoch_%s.pth' % (args.layers, args.dropout, args.lr, args.epochs)
 
     full_dataset = MovieLensDataset(
         path + dataset, 
@@ -196,7 +195,7 @@ def main():
 
     print(f'Best Iteration : {best_iter} // HR : {best_hr:.4f}, NDCG : {best_ndcg:.4f}')
 
-    torch.save(model, model_to_save)
+    torch.save(model.state_dict(), model_to_save)
     # plot_statistics(hr_list, ndcg_list, loss_list, model.get_alias(), './figs/')
 
 
