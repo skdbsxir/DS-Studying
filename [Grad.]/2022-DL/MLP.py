@@ -23,6 +23,9 @@ if device == 'cuda':
     # print(f'Using << {str(device).upper()} >>...')
     torch.cuda.manual_seed(62)
 
+# Path to save model
+MODEL_PATH = './model/'
+
 def parse_args():
     parser = argparse.ArgumentParser(description = 'Run MLP...')
     parser.add_argument('--path', nargs='?', default='./data/', 
@@ -134,6 +137,8 @@ def main():
 
     print(f"MLP arguments : {args} ")
 
+    model_to_save = MODEL_PATH + 'MLP_layer_%s_dropout_%s_lr_%s.pth' % (args.layers, args.dropout, args.learning_rate)
+
     full_dataset = MovieLensDataset(
         path + dataset, 
         num_negative_train = num_negatives_train,
@@ -191,6 +196,7 @@ def main():
 
     print(f'Best Iteration : {best_iter} // HR : {best_hr:.4f}, NDCG : {best_ndcg:.4f}')
 
+    torch.save(model, model_to_save)
     # plot_statistics(hr_list, ndcg_list, loss_list, model.get_alias(), './figs/')
 
 
