@@ -46,6 +46,9 @@ else:
     raise ValueError('Invalid argument for model: ' + str(FLAGS.model))
 
 # Define placeholders
+# Placeholder : Variable 처럼 나중에 쓸 변수를 위해 저장 공간을 미리 확보해두는 용도? https://databricks.com/kr/tensorflow/placeholders 
+## 빈 공간을 미리 확보해두고, 나중에 변수를 할당. (C에서 동적할당 같은 개념?)
+# tensorflow v1. 에서 사용하던 문법... v2부턴 삭제. (placeholder -> Variable) : https://www.tensorflow.org/api_docs/python/tf/compat/v1/placeholder
 placeholders = {
     'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
     'features': tf.sparse_placeholder(tf.float32, shape=tf.constant(features[2], dtype=tf.int64)),

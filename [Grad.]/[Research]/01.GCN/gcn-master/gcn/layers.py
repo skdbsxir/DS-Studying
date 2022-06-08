@@ -1,3 +1,6 @@
+# Layer 생성자 선언
+# Layer의 입력이 어떻게 될 것인지를 정의.
+
 from gcn.inits import *
 import tensorflow as tf
 
@@ -136,18 +139,31 @@ class GraphConvolution(Layer):
                  featureless=False, **kwargs):
         super(GraphConvolution, self).__init__(**kwargs)
 
+        # 훈련 중의 Stochasticity는 dropout을 통해 이뤄진다.
+        # 그냥 확률적으로 dropout을 적용시킨다
         if dropout:
             self.dropout = placeholders['dropout']
         else:
             self.dropout = 0.
 
+        # activation function
         self.act = act
+
+        # train.py에선 1 또는 1 + FLAGS.max_degree.
+        # 이게 뭘까? support의 의미?
         self.support = placeholders['support']
+
+        # 입력이 Sparse한지 아닌지 구분하는 Boolean. (default = False)
         self.sparse_inputs = sparse_inputs
+
+        # Feature가 기본적으로 없는지, 아니면 존재하는지 구분하는 Boolean (default = False : 입력 데이터에 feature가 존재한다 고 가정?판단?)
         self.featureless = featureless
+
+        # bias를 설정할지 말지 구분하는 Boolean (default = False)
         self.bias = bias
 
         # helper variable for sparse dropout
+        # Sparse한 입력에서 dropout을 적용하고자 할 때, 0이아닌 값들의 수를 세어 dropout을 조절?
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
         with tf.variable_scope(self.name + '_vars'):
