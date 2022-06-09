@@ -30,14 +30,20 @@ adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_da
 
 # Some preprocessing
 features = preprocess_features(features)
+
+# 설계한 기존 GCN
 if FLAGS.model == 'gcn':
     support = [preprocess_adj(adj)]
     num_supports = 1
     model_func = GCN
+
+# Defferrad et.al.이 제안한 Chebyshev polynomial 버전의 GCN
 elif FLAGS.model == 'gcn_cheby':
     support = chebyshev_polynomials(adj, FLAGS.max_degree)
     num_supports = 1 + FLAGS.max_degree
     model_func = GCN
+
+# 일반적인 MLP (with sparse input)
 elif FLAGS.model == 'dense':
     support = [preprocess_adj(adj)]  # Not used
     num_supports = 1

@@ -89,7 +89,10 @@ def load_data(dataset_str):
 
     return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask
 
-
+# Sparse Matrix를 tuple로 변환
+# COO matrix : 0이 아닌 데이터만 별도의 배열에 저장, 그 데이터가 가르키는 행과 열의 위치를 별도의 배열에 저장.
+## 예제 참고 : https://leebaro.tistory.com/entry/scipysparsecoomatrix
+# Sparse matrix in coordinate format.
 def sparse_to_tuple(sparse_mx):
     """Convert sparse matrix to tuple representation."""
     def to_tuple(mx):
@@ -118,7 +121,7 @@ def preprocess_features(features):
     features = r_mat_inv.dot(features)
     return sparse_to_tuple(features)
 
-
+# 인접행렬 A 정규화 : D^(-1/2)AD^(-1/2) 계산.
 def normalize_adj(adj):
     """Symmetrically normalize adjacency matrix."""
     adj = sp.coo_matrix(adj)
@@ -128,13 +131,14 @@ def normalize_adj(adj):
     d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
     return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).tocoo()
 
-
+# 정규화된 인접행렬 A를 tuple형태로 변환
 def preprocess_adj(adj):
     """Preprocessing of adjacency matrix for simple GCN model and conversion to tuple representation."""
     adj_normalized = normalize_adj(adj + sp.eye(adj.shape[0]))
     return sparse_to_tuple(adj_normalized)
 
 
+# 입력을 위한 dictionary(feed_dict) 구성
 def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
@@ -145,7 +149,7 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     feed_dict.update({placeholders['num_features_nonzero']: features[1].shape})
     return feed_dict
 
-
+# Paper 식(4) : 식(3)의 직접연산 문제를 해결하기 위해, g_theta를 근사화 하는 과정.
 def chebyshev_polynomials(adj, k):
     """Calculate Chebyshev polynomials up to order k. Return a list of sparse matrices (tuple representation)."""
     print("Calculating Chebyshev polynomials up to order {}...".format(k))

@@ -176,6 +176,7 @@ class GraphConvolution(Layer):
         if self.logging:
             self._log_vars()
 
+    # 식(9)?
     def _call(self, inputs):
         x = inputs
 
