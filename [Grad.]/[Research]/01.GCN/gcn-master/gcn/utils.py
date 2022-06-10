@@ -154,8 +154,8 @@ def chebyshev_polynomials(adj, k):
     """Calculate Chebyshev polynomials up to order k. Return a list of sparse matrices (tuple representation)."""
     print("Calculating Chebyshev polynomials up to order {}...".format(k))
 
-    adj_normalized = normalize_adj(adj)
-    laplacian = sp.eye(adj.shape[0]) - adj_normalized
+    adj_normalized = normalize_adj(adj) # normalize된 A를 먼저 계산한 후
+    laplacian = sp.eye(adj.shape[0]) - adj_normalized # Laplacian Matrix 계산 (L = D - ~A)
     largest_eigval, _ = eigsh(laplacian, 1, which='LM')
     scaled_laplacian = (2. / largest_eigval[0]) * laplacian - sp.eye(adj.shape[0])
 

@@ -187,6 +187,7 @@ class GraphConvolution(Layer):
             x = tf.nn.dropout(x, 1-self.dropout)
 
         # convolve
+        # 이 부분이 HW 계산하는 부분.
         supports = list()
         for i in range(len(self.support)):
             if not self.featureless:
