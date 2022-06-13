@@ -7,6 +7,12 @@ import tensorflow as tf
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
+import warnings
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 # global unique layer ID dictionary for layer name assignment
 _LAYER_UIDS = {}
 

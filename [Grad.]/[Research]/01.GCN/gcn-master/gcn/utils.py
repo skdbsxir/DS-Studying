@@ -139,6 +139,14 @@ def preprocess_adj(adj):
 
 
 # 입력을 위한 dictionary(feed_dict) 구성
+# Why should we use feed_dict? https://stackoverflow.com/questions/51407644/why-we-need-to-pass-values-using-feed-dict-to-print-loss-value-in-tensorflow
+# tf.placeholder를 쓰면 내부적으로 연산 그래프를 생성하고, 내부적으로 비어있는 컨테이너가 생성된다. 
+# 즉 훈련 도중 변수를 가져올 빈 공간을 미리 만들어 두는 셈.
+# feed_dict를 통해 빈 공간들에 변수 mapping을 한다.
+# placeholder의 이점이 뭐냐? sess.run()를 호출할 때, 1번이 각각 독립적 (?) values you put in them for one execution of sess.run() are not remembered.
+# 첫번째 sess.run()을 호출하고 난 후 이를 기억에서 지운다? 호출 하고 실행된 후에는 다시 빈 컨테이너가 된다.
+# 단순히 연산만을 수행하는 machine으로 생각할 수 있다. 입력을 받아 실행 결과를 내뱉는.
+# 이 machine은 내부적으로 값들을 저장하지 않고, 단순히 입력을 받아 출력을 내뱉는다.
 def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     """Construct feed dictionary."""
     feed_dict = dict()
@@ -155,6 +163,7 @@ def chebyshev_polynomials(adj, k):
     print("Calculating Chebyshev polynomials up to order {}...".format(k))
 
     adj_normalized = normalize_adj(adj) # normalize된 A (D^(-1/2)AD^(-1/2))를 계산
+    print(adj_normalized)
     laplacian = sp.eye(adj.shape[0]) - adj_normalized # Laplacian Matrix 계산 (L = I_N - D^(-1/2)AD^(-1/2))
     largest_eigval, _ = eigsh(laplacian, 1, which='LM') # ???? --> lambda_max 계산. denotes the largest eigenvalue of L.
     scaled_laplacian = (2. / largest_eigval[0]) * laplacian - sp.eye(adj.shape[0]) # ~A를 계산

@@ -1,6 +1,12 @@
 from gcn.layers import *
 from gcn.metrics import *
 
+import warnings
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
@@ -132,7 +138,6 @@ class MLP(Model):
 class GCN(Model):
     def __init__(self, placeholders, input_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
-
         self.inputs = placeholders['features']
         self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions

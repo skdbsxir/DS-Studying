@@ -3,6 +3,11 @@
 import tensorflow as tf
 import numpy as np
 
+import warnings
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Uniform 초기화
 def uniform(shape, scale=0.05, name=None):

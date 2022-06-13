@@ -1,5 +1,11 @@
 import tensorflow as tf
 
+import warnings
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 def masked_softmax_cross_entropy(preds, labels, mask):
     """Softmax cross-entropy loss with masking."""
     loss = tf.nn.softmax_cross_entropy_with_logits(logits=preds, labels=labels)

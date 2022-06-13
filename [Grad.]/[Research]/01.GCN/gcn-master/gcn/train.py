@@ -9,6 +9,11 @@ from gcn.models import GCN, MLP
 
 import warnings
 warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+tf.logging.set_verbosity(tf.logging.ERROR)
+
+import os; os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Set random seed
 seed = 123
@@ -67,6 +72,8 @@ placeholders = {
     'num_features_nonzero': tf.placeholder(tf.int32)  # helper variable for sparse dropout
 }
 
+# print(f'PlaceHolder : {placeholders}')
+
 # Create model
 model = model_func(placeholders, input_dim=features[2][1], logging=True)
 
@@ -91,12 +98,21 @@ cost_val = []
 for epoch in range(FLAGS.epochs):
 
     t = time.time()
+
     # Construct feed dictionary
+    # 계산 그래프 (machine)에 넣어 줄 feed_dict 구성.
+    # 이는 train-loop마다 1개씩 들어가게 되며, machine은 이를 단순히 계산만 하고, 값들을 내부적으로 저장하지 않는다. (Placeholder 특성 상.)
     feed_dict = construct_feed_dict(features, support, y_train, train_mask, placeholders)
     feed_dict.update({placeholders['dropout']: FLAGS.dropout})
 
+    # print(f'FEEDDICT? {feed_dict}')
+    # print(f"SUPPORT? {feed_dict.get('support')}") # 그래서 빈값이 나오는건가?
+
     # Training step
+    # 계산 그래프를 Session에 올린 후 실행. Train.
+    # machine을 1 epoch 실행시키는 셈.  
     outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
+    # print(outs)
 
     # Validation
     cost, acc, duration = evaluate(features, support, y_val, val_mask, placeholders)
