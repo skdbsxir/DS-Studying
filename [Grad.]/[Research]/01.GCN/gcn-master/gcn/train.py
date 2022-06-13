@@ -7,6 +7,9 @@ import tensorflow as tf
 from gcn.utils import *
 from gcn.models import GCN, MLP
 
+import warnings
+warnings.filterwarnings('ignore')
+
 # Set random seed
 seed = 123
 np.random.seed(seed)
