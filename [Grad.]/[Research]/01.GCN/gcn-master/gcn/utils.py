@@ -65,21 +65,27 @@ def load_data(dataset_str):
         ty_extended[test_idx_range-min(test_idx_range), :] = ty
         ty = ty_extended
 
-    features = sp.vstack((allx, tx)).tolil()
+    # features = lil_matrix : row-based linked list sparse matrix
+    features = sp.vstack((allx, tx)).tolil() # sp.vstack() : Stack sparse matrices vertically (row wise). np.vstack(과 동일하게. => row-wise로 쌓은 후 이를 lil matrix로 변환 -> TODO: Why?
     features[test_idx_reorder, :] = features[test_idx_range, :]
+    
+    # adj = csr_matrix : compressed sparse row matrix => Row 순서대로 데이터를 저장.
     adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
 
     labels = np.vstack((ally, ty))
     labels[test_idx_reorder, :] = labels[test_idx_range, :]
 
+    # train/test/val indexing
     idx_test = test_idx_range.tolist()
     idx_train = range(len(y))
     idx_val = range(len(y), len(y)+500)
 
+    # T/F boolean mask make with indexing
     train_mask = sample_mask(idx_train, labels.shape[0])
     val_mask = sample_mask(idx_val, labels.shape[0])
     test_mask = sample_mask(idx_test, labels.shape[0])
 
+    # train/test/val slicing with mask
     y_train = np.zeros(labels.shape)
     y_val = np.zeros(labels.shape)
     y_test = np.zeros(labels.shape)
@@ -111,7 +117,7 @@ def sparse_to_tuple(sparse_mx):
 
     return sparse_mx
 
-
+# For experimental setup -> row-normalize input feature vectors.
 def preprocess_features(features):
     """Row-normalize feature matrix and convert to tuple representation"""
     rowsum = np.array(features.sum(1))
