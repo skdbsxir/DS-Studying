@@ -39,7 +39,7 @@ adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_da
 # Some preprocessing
 features = preprocess_features(features)
 
-# 설계한 기존 GCN
+# 설계한 기존 GCN, K=1인 경우.
 if FLAGS.model == 'gcn':
     support = [preprocess_adj(adj)]
     num_supports = 1

@@ -47,7 +47,7 @@ adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_da
 # print(train_mask.shape) # boolean ndarray. (2708,)
 
 features = preprocess_features(features)
-print(features) # tuple
-print(type(features[0]))
+print(features) # tuple => (ndarray, ndarray, tuple)
+print(type(features[0])) 
 print(type(features[1]))
 print(type(features[2]))

@@ -156,7 +156,9 @@ class GraphConvolution(Layer):
         self.act = act
 
         # train.py에선 1 또는 1 + FLAGS.max_degree.
-        # 이게 뭘까? support의 의미?
+        # TODO: 이게 뭘까? support의 의미?
+        # NOTE: Chebyshev Polynomial에서의 차수 K를 의미.
+        # 논문에서 소개한 기존 GCN은 K=1로 두고, 이를 stack해서 구현한다.
         self.support = placeholders['support']
 
         # 입력이 Sparse한지 아닌지 구분하는 Boolean. (default = False)
