@@ -46,8 +46,43 @@ adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_da
 # print(y_train.shape) # sparse binary ndarray. (2708, 7)
 # print(train_mask.shape) # boolean ndarray. (2708,)
 
-features = preprocess_features(features)
-print(features) # tuple => (ndarray, ndarray, tuple)
-print(type(features[0])) 
-print(type(features[1]))
-print(type(features[2]))
+# features = preprocess_features(features)
+# print(features) # tuple => (ndarray, ndarray, tuple)
+# print(type(features[0])) 
+# print(type(features[1]))
+# print(type(features[2]))
+
+"""
+# Sample Testing
+# For check some operations
+"""
+
+# Sample data from slide (5*5 undirected graph)
+A = np.array([
+    [0,1,1,0,1],
+    [1,0,0,1,1],
+    [1,0,0,0,1],
+    [0,1,0,0,0],
+    [1,1,1,0,0]
+])
+
+D = np.array([
+    [3,0,0,0,0],
+    [0,3,0,0,0],
+    [0,0,2,0,0],
+    [0,0,0,1,0],
+    [0,0,0,0,3]
+])
+
+I_N = np.identity(5)
+
+normalized_A = normalize_adj(A).toarray()
+normalized_L = (I_N - normalize_adj(A))
+normalized_L_trick = (I_N + normalized_A)
+print(normalized_A)
+print(normalized_L_trick)
+print(normalized_L)
+
+eig_val, eig_vec = np.linalg.eig(normalized_L)
+print(eig_val)
+print(eig_vec)
