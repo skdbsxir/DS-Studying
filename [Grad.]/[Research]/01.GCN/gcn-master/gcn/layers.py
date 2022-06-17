@@ -174,6 +174,7 @@ class GraphConvolution(Layer):
         # Sparse한 입력에서 dropout을 적용하고자 할 때, 0이아닌 값들의 수를 세어 dropout을 조절?
         self.num_features_nonzero = placeholders['num_features_nonzero']
 
+        # 초기 가중치 W 초기화
         with tf.variable_scope(self.name + '_vars'):
             for i in range(len(self.support)):
                 self.vars['weights_' + str(i)] = glorot([input_dim, output_dim],
@@ -198,11 +199,16 @@ class GraphConvolution(Layer):
         # 이 부분이 HW 계산하는 부분.
         supports = list()
         for i in range(len(self.support)):
+            # support는 K차수, 즉 hidden layer의 갯수.
+            # for loop은 hidden layer의 수 만큼 돈다 -> 순전파를 K번.
+            # node feature X(=H(0))와 W를 dot-product (XW)
+            ## 이때 X는 normalize trick이 적용된 DAD와 곱해진 값.
             if not self.featureless:
                 pre_sup = dot(x, self.vars['weights_' + str(i)],
                               sparse=self.sparse_inputs)
             else:
                 pre_sup = self.vars['weights_' + str(i)]
+            # H(l)을 계산
             support = dot(self.support[i], pre_sup, sparse=True)
             supports.append(support)
         output = tf.add_n(supports)
