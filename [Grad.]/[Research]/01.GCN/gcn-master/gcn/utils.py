@@ -104,9 +104,9 @@ def sparse_to_tuple(sparse_mx):
     def to_tuple(mx):
         if not sp.isspmatrix_coo(mx):
             mx = mx.tocoo()
-        coords = np.vstack((mx.row, mx.col)).transpose()
-        values = mx.data
-        shape = mx.shape
+        coords = np.vstack((mx.row, mx.col)).transpose() # 값이 들어있는 위치의 좌표
+        values = mx.data # 해당 좌표에 들어있는 값
+        shape = mx.shape # matrix의 형태
         return coords, values, shape
 
     if isinstance(sparse_mx, list):
@@ -137,7 +137,8 @@ def normalize_adj(adj):
     d_mat_inv_sqrt = sp.diags(d_inv_sqrt)
     return adj.dot(d_mat_inv_sqrt).transpose().dot(d_mat_inv_sqrt).tocoo()
 
-# 정규화된 인접행렬 A를 tuple형태로 변환
+# 인접행렬 A에 renormaization trick 적용
+# A + I_N을 받아서 DAD 계산 -> tuple 형태로 return (값 저장 위치좌표 & 실제 값 & size)
 def preprocess_adj(adj):
     """Preprocessing of adjacency matrix for simple GCN model and conversion to tuple representation."""
     adj_normalized = normalize_adj(adj + sp.eye(adj.shape[0]))

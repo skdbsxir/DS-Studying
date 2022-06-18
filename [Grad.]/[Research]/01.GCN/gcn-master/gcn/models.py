@@ -139,9 +139,9 @@ class GCN(Model):
     def __init__(self, placeholders, input_dim, **kwargs):
         super(GCN, self).__init__(**kwargs)
         self.inputs = placeholders['features']
-        self.input_dim = input_dim
+        self.input_dim = input_dim # 입력 차원은 하단과 같이 입력(그래프)의 feature 수
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
-        self.output_dim = placeholders['labels'].get_shape().as_list()[1]
+        self.output_dim = placeholders['labels'].get_shape().as_list()[1] # 출력 차원은 # of labels
         self.placeholders = placeholders
 
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
@@ -161,8 +161,9 @@ class GCN(Model):
         self.accuracy = masked_accuracy(self.outputs, self.placeholders['labels'],
                                         self.placeholders['labels_mask'])
 
+    # 2개의 GC층 적재
     def _build(self):
-
+        # 입력 : placeholders
         self.layers.append(GraphConvolution(input_dim=self.input_dim,
                                             output_dim=FLAGS.hidden1,
                                             placeholders=self.placeholders,

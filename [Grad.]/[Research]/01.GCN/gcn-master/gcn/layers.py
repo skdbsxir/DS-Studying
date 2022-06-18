@@ -185,7 +185,7 @@ class GraphConvolution(Layer):
         if self.logging:
             self._log_vars()
 
-    # 식(9)?
+    # 식(9)
     def _call(self, inputs):
         x = inputs
 
@@ -197,6 +197,7 @@ class GraphConvolution(Layer):
 
         # convolve
         # 이 부분이 HW 계산하는 부분.
+        # FIXME: DAD는 어디서? 내가 본게 맞는건가
         supports = list()
         for i in range(len(self.support)):
             # support는 K차수, 즉 hidden layer의 갯수.
@@ -208,7 +209,7 @@ class GraphConvolution(Layer):
                               sparse=self.sparse_inputs)
             else:
                 pre_sup = self.vars['weights_' + str(i)]
-            # H(l)을 계산
+            # H(l+1)을 계산
             support = dot(self.support[i], pre_sup, sparse=True)
             supports.append(support)
         output = tf.add_n(supports)

@@ -79,10 +79,15 @@ I_N = np.identity(5)
 normalized_A = normalize_adj(A).toarray()
 normalized_L = (I_N - normalize_adj(A))
 normalized_L_trick = (I_N + normalized_A)
-print(normalized_A)
-print(normalized_L_trick)
-print(normalized_L)
+# print(normalized_A)
+# print(normalized_L_trick)
+# print(normalized_L)
+adj_normalized = normalize_adj(A + sp.eye(A.shape[0]))
 
-eig_val, eig_vec = np.linalg.eig(normalized_L)
-print(eig_val)
-print(eig_vec)
+# print(adj_normalized.toarray())
+print(normalize_adj(A + I_N).toarray())
+
+D_new = D + I_N
+D_inv = np.power(D_new, -0.5)
+D_inv[np.isinf(D_inv)] = 0.
+# print(D_inv)
