@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "Train.py", line 45, in <module>
-    wandb.watch(agent)
-  File "C:\Users\skdbs\AppData\Roaming\Python\Python38\site-packages\wandb\sdk\wandb_watch.py", line 74, in watch
-    raise ValueError(
-ValueError: Expected a pytorch model (torch.nn.Module). Received <class 'Agent.DDQNAgent'>
