@@ -1,0 +1,44 @@
+
+frames:     0, reward:   nan, loss: 0.000000, epsilon: 1.000000, episode:    0
+C:\ProgramData\Anaconda3\envs\gym\lib\site-packages\numpy\core\fromnumeric.py:3474: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+C:\ProgramData\Anaconda3\envs\gym\lib\site-packages\numpy\core\_methods.py:189: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+frames:  1000, reward: -20.000000, loss: 0.000000, epsilon: 0.967544, episode:    1
+frames:  2000, reward: -19.500000, loss: 0.000000, epsilon: 0.936152, episode:    2
+frames:  3000, reward: -20.000000, loss: 0.000000, epsilon: 0.905789, episode:    3
+frames:  4000, reward: -20.250000, loss: 0.000000, epsilon: 0.876422, episode:    4
+frames:  5000, reward: -20.200000, loss: 0.000000, epsilon: 0.848017, episode:    5
+frames:  6000, reward: -20.333333, loss: 0.000000, epsilon: 0.820543, episode:    6
+frames:  7000, reward: -20.500000, loss: 0.000000, epsilon: 0.793971, episode:    8
+frames:  8000, reward: -20.555556, loss: 0.000000, epsilon: 0.768269, episode:    9
+frames:  9000, reward: -20.600000, loss: 0.000000, epsilon: 0.743410, episode:   10
+frames: 10000, reward: -20.900000, loss: 0.001031, epsilon: 0.719366, episode:   12
+frames: 11000, reward: -20.900000, loss: 0.015633, epsilon: 0.696110, episode:   13
+frames: 12000, reward: -20.900000, loss: 0.000252, epsilon: 0.673617, episode:   14
+frames: 13000, reward: -21.000000, loss: 0.000346, epsilon: 0.651861, episode:   15
+frames: 14000, reward: -20.900000, loss: 0.000381, epsilon: 0.630818, episode:   16
+frames: 15000, reward: -20.800000, loss: 0.014989, epsilon: 0.610465, episode:   17
+frames: 16000, reward: -20.700000, loss: 0.029791, epsilon: 0.590780, episode:   18
+frames: 17000, reward: -20.700000, loss: 0.000575, epsilon: 0.571740, episode:   19
+frames: 18000, reward: -20.700000, loss: 0.000434, epsilon: 0.553324, episode:   20
+frames: 19000, reward: -20.500000, loss: 0.029310, epsilon: 0.535511, episode:   22
+frames: 20000, reward: -20.500000, loss: 0.014844, epsilon: 0.518283, episode:   23
+frames: 21000, reward: -20.500000, loss: 0.000233, epsilon: 0.501619, episode:   24
+frames: 22000, reward: -20.400000, loss: 0.000058, epsilon: 0.485502, episode:   25
+frames: 23000, reward: -20.400000, loss: 0.030442, epsilon: 0.469913, episode:   26
+frames: 24000, reward: -20.500000, loss: 0.000263, epsilon: 0.454836, episode:   27
+frames: 25000, reward: -20.500000, loss: 0.015277, epsilon: 0.440252, episode:   29
+frames: 26000, reward: -20.400000, loss: 0.015555, epsilon: 0.426147, episode:   30
+frames: 27000, reward: -20.500000, loss: 0.000383, epsilon: 0.412504, episode:   31
+frames: 28000, reward: -20.500000, loss: 0.000357, epsilon: 0.399308, episode:   32
+frames: 29000, reward: -20.500000, loss: 0.014912, epsilon: 0.386545, episode:   33
+frames: 30000, reward: -20.500000, loss: 0.015202, epsilon: 0.374201, episode:   34
+frames: 31000, reward: -20.600000, loss: 0.000361, epsilon: 0.362261, episode:   36
+frames: 32000, reward: -20.500000, loss: 0.015187, epsilon: 0.350712, episode:   37
+frames: 33000, reward: -20.500000, loss: 0.045201, epsilon: 0.339542, episode:   38
+frames: 34000, reward: -20.400000, loss: 0.014852, epsilon: 0.328739, episode:   39
+frames: 35000, reward: -20.500000, loss: 0.014784, epsilon: 0.318289, episode:   40
+frames: 36000, reward: -20.400000, loss: 0.014231, epsilon: 0.308182, episode:   41
+frames: 37000, reward: -20.400000, loss: 0.014850, epsilon: 0.298407, episode:   43
+frames: 38000, reward: -20.400000, loss: 0.050414, epsilon: 0.288952, episode:   44

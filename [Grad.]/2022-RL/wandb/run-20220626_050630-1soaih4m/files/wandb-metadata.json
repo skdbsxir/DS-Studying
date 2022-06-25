@@ -1,0 +1,22 @@
+{
+    "os": "Windows-10-10.0.19044-SP0",
+    "python": "3.8.13",
+    "heartbeatAt": "2022-06-25T20:06:33.174113",
+    "startedAt": "2022-06-25T20:06:30.113908",
+    "docker": null,
+    "cpu_count": 8,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "Train.py",
+    "codePath": "[Grad.]\\2022-RL\\Train.py",
+    "git": {
+        "remote": "https://github.com/skdbsxir/DS-Studying.git",
+        "commit": "18526e4afe2e73d5c807aed80bc0b1a114c0af52"
+    },
+    "email": "skdbsxir@naver.com",
+    "root": "C:/Users/skdbs/Desktop/Studying/DS-Studying",
+    "host": "DESKTOP-BTQC3LG",
+    "username": "skdbs",
+    "executable": "C:\\ProgramData\\Anaconda3\\envs\\gym\\python.exe"
+}

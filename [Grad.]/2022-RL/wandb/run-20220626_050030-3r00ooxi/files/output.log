@@ -1,0 +1,14 @@
+
+frames:     0, reward:   nan, loss: 0.000000, epsilon: 1.000000, episode:    0
+C:\ProgramData\Anaconda3\envs\gym\lib\site-packages\numpy\core\fromnumeric.py:3474: RuntimeWarning: Mean of empty slice.
+  return _methods._mean(a, axis=axis, dtype=dtype,
+C:\ProgramData\Anaconda3\envs\gym\lib\site-packages\numpy\core\_methods.py:189: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+Traceback (most recent call last):
+  File "Train.py", line 96, in <module>
+    'gameplays' : wandb.Video('train.mp4', caption='episode :'+str(episode_num-10), fps=4, format='gif')
+  File "C:\Users\skdbs\AppData\Roaming\Python\Python38\site-packages\wandb\sdk\data_types\video.py", line 115, in __init__
+    self._set_file(data_or_path, is_tmp=False)
+  File "C:\Users\skdbs\AppData\Roaming\Python\Python38\site-packages\wandb\sdk\data_types\base_types\media.py", line 65, in _set_file
+    with open(self._path, "rb") as f:
+FileNotFoundError: [Errno 2] No such file or directory: 'train.mp4'
