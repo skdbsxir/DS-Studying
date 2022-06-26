@@ -30,11 +30,11 @@
 <br>
 
 ## Chart & Figures
-![episode155_game](./episode155_capture.png)
+![episode155_capture](https://user-images.githubusercontent.com/11826499/175813751-bc67676a-62fc-4617-821d-db7b5c5d9248.png)
 
     전체 약 300번의 episode 중 155번째 episode의 화면
 
-![episode155_metric](./episode155_states.jpg)
+![episode155_states](https://user-images.githubusercontent.com/11826499/175813774-eb92e846-1865-4ca3-81a8-e76f2dd533ef.jpg)
 
     마찬가지로 155번째 episode에서의 reward, loss 그래프
 
