@@ -12,22 +12,22 @@ class Buffer(object):
         
     def push(self, state, action, reward, next_state, done):
         """
-        Push data to buffer
+        Buffer에 데이터 push
         """
         data = (state, action, reward, next_state, done)
 
-        # Buffer is not full
+        # Buffer가 아직 가득차있지 않은 경우
         if len(self.buffer) <= self.memory_size:
             self.buffer.append(data)
 
-        # Buffer is full
+        # Buffer가 가득 찬 경우 -> replace
         else:
             self.buffer[self.next_idx] = data
         self.next_idx = (self.next_idx + 1) % self.memory_size
 
     def sample(self, batch_size):
         """
-        Randomly sample data from buffer
+        Buffer로부터 random하게 sample
         """
         states, actions, rewards, next_states, dones = [], [], [], [], []
         for i in range(batch_size):

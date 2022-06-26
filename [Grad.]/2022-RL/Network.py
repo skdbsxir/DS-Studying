@@ -5,6 +5,7 @@ class DQN(nn.Module):
     def __init__(self, in_channels=4, num_actions=5):
         """
         Initialize DQN
+        : 게임 화면이 입력으로 들어오므로, Conv layer를 이용해 입력 화면을 처리
         """
         super(DQN, self).__init__()
 

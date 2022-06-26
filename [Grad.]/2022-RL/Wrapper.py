@@ -1,5 +1,3 @@
-#pylint:disable=E1101 : https://chowdera.com/2022/130/202205101055516130.html
-
 import numpy as np
 from collections import deque
 import gym
@@ -27,9 +25,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            # noops = self.unwrapped.np_random.randint(1, self.noop_max + 1) #pylint: disable=E1101
             noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
-            # noops = self.unwrapped.np.random.randint(1, self.noop_max + 1)
         assert noops > 0
         obs = None
         for _ in range(noops):
@@ -307,6 +303,7 @@ class LazyFrames(object):
         return self._force()[..., i]
 
 def make_atari(env_id, max_episode_steps=None):
+    # 실제 학습이 어떻게 이뤄지고 있는지 render_mode를 통해 창으로 확인
     env = gym.make(env_id, render_mode='human')
     assert 'NoFrameskip' in env.spec.id
     env = NoopResetEnv(env, noop_max=30)
@@ -328,5 +325,6 @@ def wrap_deepmind(env, episode_life=False, clip_rewards=False, frame_stack=False
         env = ClipRewardEnv(env)
     if frame_stack:
         env = FrameStack(env, 4)
+    # episode마다의 이뤄지는 학습 과정을 ./video 경로에 저장
     env = gym.wrappers.Monitor(env, './video', video_callable=lambda x: x%10==0, force=True)
     return env
