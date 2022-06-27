@@ -37,13 +37,17 @@
 ![episode155_states](https://user-images.githubusercontent.com/11826499/175813774-eb92e846-1865-4ca3-81a8-e76f2dd533ef.jpg)
 
     마찬가지로 155번째 episode에서의 reward, loss 그래프
+    
+![finished_states](https://user-images.githubusercontent.com/11826499/175865542-45d2333d-993a-4aed-8e29-5920cb25ae37.png)
 
+    최종 275번의 episode를 거친 후의 reward, loss 그래프
 
 <br>
 
 ## Some Notations & Reports
-- **개인 노트북 환경(Windows)** 에서 작업하였으며, **GPU가 없는(no CUDA) 환경**이라 실험이 아직 진행중입니다.  <br>
-  (220626 20:45 Ongoing)
+- **개인 노트북 환경(Windows)** 에서 작업하였으며, **GPU가 없는(no CUDA) 환경**이라 ~~실험이 아직 진행중입니다.~~  <br>
+  ~~(220626 20:45 Ongoing)~~  <br>
+  (220627 12:47 총 275번의 episode로 종료되었습니다.)
 - 학습 현황 chart는 **[wandb link](https://wandb.ai/happysky12/RL-DQN)** 에서 확인하실 수 있습니다.  <br>
   (Public으로 설정해두었으므로, 확인이 가능합니다.)
 - 다음 링크들의 도움을 많이 받았으며, 참고 및 분석하며 새롭게 작성하였습니다.
