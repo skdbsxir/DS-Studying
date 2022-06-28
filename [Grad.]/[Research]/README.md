@@ -9,7 +9,7 @@
 ## Research Flow 
 
 `
-GCN (Ongoing) -> GraphSAGE -> GAT
+GCN -> GraphSAGE (Ongoing) -> GAT
 `
 
 `
