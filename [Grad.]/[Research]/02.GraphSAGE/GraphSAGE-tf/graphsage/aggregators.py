@@ -41,6 +41,8 @@ class MeanAggregator(Layer):
         self.output_dim = output_dim
 
     def _call(self, inputs):
+        # 단순히 h^(k-1)의 모든 벡터에 대해 element-wise mean을 계산
+        # 기존 (transductive) GCN propagation rule과 동일한 방법
         self_vecs, neigh_vecs = inputs
 
         neigh_vecs = tf.nn.dropout(neigh_vecs, 1-self.dropout)
@@ -99,6 +101,7 @@ class GCNAggregator(Layer):
         self.output_dim = output_dim
 
     def _call(self, inputs):
+        # 기존 transductive한 GCN의 propagation rule을 inductive 한 방법으로 변경
         self_vecs, neigh_vecs = inputs
 
         neigh_vecs = tf.nn.dropout(neigh_vecs, 1-self.dropout)
@@ -166,6 +169,7 @@ class MaxPoolingAggregator(Layer):
         self.neigh_input_dim = neigh_input_dim
 
     def _call(self, inputs):
+        # max-pooling with 1 layer -> 식(3)
         self_vecs, neigh_vecs = inputs
         neigh_h = neigh_vecs
 
@@ -178,7 +182,7 @@ class MaxPoolingAggregator(Layer):
         for l in self.mlp_layers:
             h_reshaped = l(h_reshaped)
         neigh_h = tf.reshape(h_reshaped, (batch_size, num_neighbors, self.hidden_dim))
-        neigh_h = tf.reduce_max(neigh_h, axis=1)
+        neigh_h = tf.reduce_max(neigh_h, axis=1) # max-pooling
         
         from_neighs = tf.matmul(neigh_h, self.vars['neigh_weights'])
         from_self = tf.matmul(self_vecs, self.vars["self_weights"])
@@ -244,6 +248,7 @@ class MeanPoolingAggregator(Layer):
         self.neigh_input_dim = neigh_input_dim
 
     def _call(self, inputs):
+        # mean-pooling with 1 layer -> 식(3)에서 max가 아닌 mean
         self_vecs, neigh_vecs = inputs
         neigh_h = neigh_vecs
 
@@ -256,7 +261,7 @@ class MeanPoolingAggregator(Layer):
         for l in self.mlp_layers:
             h_reshaped = l(h_reshaped)
         neigh_h = tf.reshape(h_reshaped, (batch_size, num_neighbors, self.hidden_dim))
-        neigh_h = tf.reduce_mean(neigh_h, axis=1)
+        neigh_h = tf.reduce_mean(neigh_h, axis=1) # mean-pooling
         
         from_neighs = tf.matmul(neigh_h, self.vars['neigh_weights'])
         from_self = tf.matmul(self_vecs, self.vars["self_weights"])
@@ -332,6 +337,7 @@ class TwoMaxLayerPoolingAggregator(Layer):
         self.neigh_input_dim = neigh_input_dim
 
     def _call(self, inputs):
+        # 층이 2개인 maxpooling agg. -> 식(3)에서 sigmoid가 2개
         self_vecs, neigh_vecs = inputs
         neigh_h = neigh_vecs
 
@@ -344,7 +350,7 @@ class TwoMaxLayerPoolingAggregator(Layer):
         for l in self.mlp_layers:
             h_reshaped = l(h_reshaped)
         neigh_h = tf.reshape(h_reshaped, (batch_size, num_neighbors, self.hidden_dim_2))
-        neigh_h = tf.reduce_max(neigh_h, axis=1)
+        neigh_h = tf.reduce_max(neigh_h, axis=1) # max-pooling
         
         from_neighs = tf.matmul(neigh_h, self.vars['neigh_weights'])
         from_self = tf.matmul(self_vecs, self.vars["self_weights"])
@@ -403,18 +409,20 @@ class SeqAggregator(Layer):
         self.cell = tf.contrib.rnn.BasicLSTMCell(self.hidden_dim)
 
     def _call(self, inputs):
+        # LSTM을 이웃 노드의 random permutation에 적용 -> unordered set에서도 동작할 수 있도록.
         self_vecs, neigh_vecs = inputs
 
         dims = tf.shape(neigh_vecs)
         batch_size = dims[0]
         initial_state = self.cell.zero_state(batch_size, tf.float32)
-        used = tf.sign(tf.reduce_max(tf.abs(neigh_vecs), axis=2))
+        used = tf.sign(tf.reduce_max(tf.abs(neigh_vecs), axis=2)) # 이웃 벡터 크기를 줄이고, 여기에 sign(부호)을 매긴다? 
         length = tf.reduce_sum(used, axis=1)
         length = tf.maximum(length, tf.constant(1.))
         length = tf.cast(length, tf.int32)
 
         with tf.variable_scope(self.name) as scope:
             try:
+                # dynamic rnn? https://stackoverflow.com/questions/43100981/what-is-a-dynamic-rnn-in-tensorflow 
                 rnn_outputs, rnn_states = tf.nn.dynamic_rnn(
                         self.cell, neigh_vecs,
                         initial_state=initial_state, dtype=tf.float32, time_major=False,

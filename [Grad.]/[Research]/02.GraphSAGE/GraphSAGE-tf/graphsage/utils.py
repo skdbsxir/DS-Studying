@@ -13,6 +13,10 @@ major = version_info[0]
 minor = version_info[1]
 assert (major <= 1) and (minor <= 11), "networkx major version > 1.11"
 
+"""
+Networkx : sage=1.11 // gcn=2.2 over
+"""
+
 WALK_LEN=5
 N_WALKS=50
 
