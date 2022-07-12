@@ -447,6 +447,9 @@ class Node2VecModel(GeneralizedModel):
         labels = tf.reshape(
                 tf.cast(self.placeholders['batch2'], dtype=tf.int64),
                 [self.batch_size, 1])
+
+        # negative sampling -> Samples a set of classes using the provided (fixed) base distribution. (fixed_unigram_candidate_sampler)
+        # 최대 차수만큼의 범위 안에서 random하게 class를 sample.
         self.neg_samples, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
             true_classes=labels,
             num_true=1,
@@ -459,6 +462,8 @@ class Node2VecModel(GeneralizedModel):
         self.outputs1 = tf.nn.embedding_lookup(self.target_embeds, self.inputs1)
         self.outputs2 = tf.nn.embedding_lookup(self.context_embeds, self.inputs2)
         self.outputs2_bias = tf.nn.embedding_lookup(self.context_bias, self.inputs2)
+
+        # neg sample -> embedding
         self.neg_outputs = tf.nn.embedding_lookup(self.context_embeds, self.neg_samples)
         self.neg_outputs_bias = tf.nn.embedding_lookup(self.context_bias, self.neg_samples)
 

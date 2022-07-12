@@ -47,17 +47,17 @@ class MeanAggregator(Layer):
 
         neigh_vecs = tf.nn.dropout(neigh_vecs, 1-self.dropout)
         self_vecs = tf.nn.dropout(self_vecs, 1-self.dropout)
-        neigh_means = tf.reduce_mean(neigh_vecs, axis=1)
+        neigh_means = tf.reduce_mean(neigh_vecs, axis=1) # 이웃 노드들의 평균을 먼저 계산 (hu^{k-1})
        
         # [nodes] x [out_dim]
-        from_neighs = tf.matmul(neigh_means, self.vars['neigh_weights'])
+        from_neighs = tf.matmul(neigh_means, self.vars['neigh_weights']) # W * hu^{k-1}
 
-        from_self = tf.matmul(self_vecs, self.vars["self_weights"])
+        from_self = tf.matmul(self_vecs, self.vars["self_weights"]) # W * hv^{k-1}
          
         if not self.concat:
             output = tf.add_n([from_self, from_neighs])
         else:
-            output = tf.concat([from_self, from_neighs], axis=1)
+            output = tf.concat([from_self, from_neighs], axis=1) # 이 둘을 단순히 concat -> transductive GCN propagation rule (matmul --> sum)
 
         # bias
         if self.bias:
@@ -107,10 +107,10 @@ class GCNAggregator(Layer):
         neigh_vecs = tf.nn.dropout(neigh_vecs, 1-self.dropout)
         self_vecs = tf.nn.dropout(self_vecs, 1-self.dropout)
         means = tf.reduce_mean(tf.concat([neigh_vecs, 
-            tf.expand_dims(self_vecs, axis=1)], axis=1), axis=1)
+            tf.expand_dims(self_vecs, axis=1)], axis=1), axis=1) # MEAN(hv^{k-1} UNION hu^{k-1}) (식(2))
        
         # [nodes] x [out_dim]
-        output = tf.matmul(means, self.vars['weights'])
+        output = tf.matmul(means, self.vars['weights']) # W * MEAN(~~) -> activation을 거치면 최종 output = hv^k 가 생성된다.
 
         # bias
         if self.bias:
@@ -433,6 +433,8 @@ class SeqAggregator(Layer):
                         self.cell, neigh_vecs,
                         initial_state=initial_state, dtype=tf.float32, time_major=False,
                         sequence_length=length)
+
+        # Random permutation?
         batch_size = tf.shape(rnn_outputs)[0]
         max_len = tf.shape(rnn_outputs)[1]
         out_size = int(rnn_outputs.get_shape()[2])
