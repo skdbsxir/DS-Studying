@@ -18,6 +18,7 @@ _LAYER_UIDS = {}
 
 def get_layer_uid(layer_name=''):
     """Helper function, assigns unique layer IDs."""
+    # layer ID get
     if layer_name not in _LAYER_UIDS:
         _LAYER_UIDS[layer_name] = 1
         return 1
@@ -91,6 +92,7 @@ class Dense(Layer):
             self.num_features_nonzero = placeholders['num_features_nonzero']
 
         with tf.variable_scope(self.name + '_vars'):
+            # Weight & Bias Initialize
             self.vars['weights'] = tf.get_variable('weights', shape=(input_dim, output_dim),
                                          dtype=tf.float32, 
                                          initializer=tf.contrib.layers.xavier_initializer(),

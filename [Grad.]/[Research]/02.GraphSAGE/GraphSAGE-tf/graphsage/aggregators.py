@@ -3,6 +3,12 @@ import tensorflow as tf
 from .layers import Layer, Dense
 from .inits import glorot, zeros
 
+"""
+GCN -> .layers 내부에서 GraphConvolution class가 같이 정의.
+GraphSAGE -> .layers의 Layer, Dense를 상속받아 Aggregator를 정의
+            => Neural network layer이므로, trainable하다.
+"""
+
 class MeanAggregator(Layer):
     """
     Aggregates via mean followed by matmul and non-linearity.
@@ -16,8 +22,9 @@ class MeanAggregator(Layer):
         self.dropout = dropout
         self.bias = bias
         self.act = act
-        self.concat = concat
+        self.concat = concat # 자기자신과 이웃의 concat 여부 (이웃을 선택하지 않는다면 자기자신과 자기자신?)
 
+        # 이웃 정보를 받지 않는다면? -> 자기 자신만을 입력으로 받는다.
         if neigh_input_dim is None:
             neigh_input_dim = input_dim
 
@@ -26,6 +33,9 @@ class MeanAggregator(Layer):
         else:
             name = ''
 
+        # Aggregator layer의 내부 weight W 초기화.
+        # weight는 2가지 : 이웃 노드에 적용될 neigh_weights // 자기 자신 노드에 적용될 self_weights
+        # FIXME: paper에서 이에 대한 언급이 있었나..?
         with tf.variable_scope(self.name + name + '_vars'):
             self.vars['neigh_weights'] = glorot([neigh_input_dim, output_dim],
                                                         name='neigh_weights')
@@ -43,13 +53,22 @@ class MeanAggregator(Layer):
     def _call(self, inputs):
         # 단순히 h^(k-1)의 모든 벡터에 대해 element-wise mean을 계산
         # 기존 (transductive) GCN propagation rule과 동일한 방법
+        
+        # Aggregator layer의 input은
+        # 1) 이전 layer에서의 자기 자신의 representation hv^{k-1}
+        # 2) 이전 layer에서의 주변 이웃의 representation hu^{k-1}
         self_vecs, neigh_vecs = inputs
 
+        # dropout 적용
         neigh_vecs = tf.nn.dropout(neigh_vecs, 1-self.dropout)
         self_vecs = tf.nn.dropout(self_vecs, 1-self.dropout)
-        neigh_means = tf.reduce_mean(neigh_vecs, axis=1) # 이웃 노드들의 평균을 먼저 계산 (hu^{k-1})
+
+        # 주변 이웃들의 representation의 평균 계산 (by axis=1 : 행 방향 => tensor의 왼쪽에서 오른쪽 방향으로)
+        # 주변 이웃들의 정보(representation)를 우선 집계
+        neigh_means = tf.reduce_mean(neigh_vecs, axis=1) # 이웃 노드들의 평균을 먼저 계산 (hu^{k-1}) 
        
         # [nodes] x [out_dim]
+        # 
         from_neighs = tf.matmul(neigh_means, self.vars['neigh_weights']) # W * hu^{k-1}
 
         from_self = tf.matmul(self_vecs, self.vars["self_weights"]) # W * hv^{k-1}
