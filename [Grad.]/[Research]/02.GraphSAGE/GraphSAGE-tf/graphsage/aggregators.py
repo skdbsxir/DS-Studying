@@ -22,7 +22,7 @@ class MeanAggregator(Layer):
         self.dropout = dropout
         self.bias = bias
         self.act = act
-        self.concat = concat # 자기자신과 이웃의 concat 여부 (이웃을 선택하지 않는다면 자기자신과 자기자신?)
+        self.concat = concat # 자기자신과 이웃의 concat 여부 (FIXME: 이웃을 선택하지 않는다면 자기자신과 자기자신?)
 
         # 이웃 정보를 받지 않는다면? -> 자기 자신만을 입력으로 받는다.
         if neigh_input_dim is None:
@@ -35,7 +35,7 @@ class MeanAggregator(Layer):
 
         # Aggregator layer의 내부 weight W 초기화.
         # weight는 2가지 : 이웃 노드에 적용될 neigh_weights // 자기 자신 노드에 적용될 self_weights
-        # FIXME: paper에서 이에 대한 언급이 있었나..?
+        # FIXME: paper에서 이에 대한 언급이 있었나..? 
         with tf.variable_scope(self.name + name + '_vars'):
             self.vars['neigh_weights'] = glorot([neigh_input_dim, output_dim],
                                                         name='neigh_weights')
@@ -68,14 +68,18 @@ class MeanAggregator(Layer):
         neigh_means = tf.reduce_mean(neigh_vecs, axis=1) # 이웃 노드들의 평균을 먼저 계산 (hu^{k-1}) 
        
         # [nodes] x [out_dim]
-        # 
+        # {k-1}때의 주변 이웃과 자기 자신의 정보(representation) * (learnable) Weight
         from_neighs = tf.matmul(neigh_means, self.vars['neigh_weights']) # W * hu^{k-1}
 
         from_self = tf.matmul(self_vecs, self.vars["self_weights"]) # W * hv^{k-1}
          
         if not self.concat:
+            # add_n : tf_add와 동일하지만, 많은 양의 텐서를 한번에 처리할 수 있음.
+            # https://www.tensorflow.org/api_docs/python/tf/math/add_n
             output = tf.add_n([from_self, from_neighs])
         else:
+            # FIXME: concat(axis=1) : 단순히 오른쪽으로 붙이기. sum? GCN prop. rule?
+            # GCN.layers 안의 GraphConvolution class를 보면 dot 후에 append 한다. propagation rule이 맞아 보인다.
             output = tf.concat([from_self, from_neighs], axis=1) # 이 둘을 단순히 concat -> transductive GCN propagation rule (matmul --> sum)
 
         # bias
@@ -97,7 +101,7 @@ class GCNAggregator(Layer):
         self.dropout = dropout
         self.bias = bias
         self.act = act
-        self.concat = concat
+        self.concat = concat # 마찬가지로 자기자신과 이웃의 concat 여부 (마찬가지로 FIXME: 이웃을 선택하지 않는다면 자기자신과 자기자신?)
 
         if neigh_input_dim is None:
             neigh_input_dim = input_dim
@@ -107,6 +111,7 @@ class GCNAggregator(Layer):
         else:
             name = ''
 
+        # 기존 GCN과 동일하게 1개의 weight만을 사용.
         with tf.variable_scope(self.name + name + '_vars'):
             self.vars['weights'] = glorot([neigh_input_dim, output_dim],
                                                         name='neigh_weights')
