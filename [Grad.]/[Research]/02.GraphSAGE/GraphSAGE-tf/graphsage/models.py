@@ -300,14 +300,18 @@ class SampleAndAggregate(GeneralizedModel):
         new_agg = aggregators is None
         if new_agg:
             aggregators = []
+        # layer마다 정의한 aggregator 정의 -> for train aggregator by loss_fn
         for layer in range(len(num_samples)):
+            # Aggregator 정의
             if new_agg:
                 dim_mult = 2 if concat and (layer != 0) else 1
                 # aggregator at current layer
+                # 현재 layer에서의 aggregator 
                 if layer == len(num_samples) - 1:
                     aggregator = self.aggregator_cls(dim_mult*dims[layer], dims[layer+1], act=lambda x : x,
                             dropout=self.placeholders['dropout'], 
                             name=name, concat=concat, model_size=model_size)
+                # 다른 layer에서의 aggregator?
                 else:
                     aggregator = self.aggregator_cls(dim_mult*dims[layer], dims[layer+1],
                             dropout=self.placeholders['dropout'], 
@@ -315,9 +319,13 @@ class SampleAndAggregate(GeneralizedModel):
                 aggregators.append(aggregator)
             else:
                 aggregator = aggregators[layer]
+
             # hidden representation at current layer for all support nodes that are various hops away
+            # TODO: 현재 layer에서의 hidden representation (hv^{k}) : 다양한 hop만큼 떨어진 모든 주변 노드에서 정보를 받아와야 한다 (?)
             next_hidden = []
+            
             # as layer increases, the number of support nodes needed decreases
+            # TODO: layer가 증가하면, 주변 노드(support node)의 수는 감소해야 한다?
             for hop in range(len(num_samples) - layer):
                 dim_mult = 2 if concat and (layer != 0) else 1
                 neigh_dims = [batch_size * support_sizes[hop], 
@@ -333,38 +341,49 @@ class SampleAndAggregate(GeneralizedModel):
         labels = tf.reshape(
                 tf.cast(self.placeholders['batch2'], dtype=tf.int64),
                 [self.batch_size, 1])
+        
+        # fixed base distribution에 따라 negative sampling 수행
         self.neg_samples, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
             true_classes=labels,
             num_true=1,
             num_sampled=FLAGS.neg_sample_size,
             unique=False,
             range_max=len(self.degrees),
-            distortion=0.75,
+            distortion=0.75, # 왜도 정도 정의? -> (doc) skew the unigram probability distribution.
             unigrams=self.degrees.tolist()))
 
            
-        # perform "convolution"
+        ### perform "convolution"
         samples1, support_sizes1 = self.sample(self.inputs1, self.layer_infos)
         samples2, support_sizes2 = self.sample(self.inputs2, self.layer_infos)
         num_samples = [layer_info.num_samples for layer_info in self.layer_infos]
+
+        # 노드 자신의 집계된 정보 and 이웃 노드들의 집계된 representation
         self.outputs1, self.aggregators = self.aggregate(samples1, [self.features], self.dims, num_samples,
                 support_sizes1, concat=self.concat, model_size=self.model_size)
         self.outputs2, _ = self.aggregate(samples2, [self.features], self.dims, num_samples,
                 support_sizes2, aggregators=self.aggregators, concat=self.concat,
                 model_size=self.model_size)
 
+        # random walk 시퀀스 안에서의 negative sampling
         neg_samples, neg_support_sizes = self.sample(self.neg_samples, self.layer_infos,
             FLAGS.neg_sample_size)
+
+        # negative sample (멀리 떨어진 노드 -> 지정된 hop보다 멀리 떨어진 노드)에서 집계된 representation
         self.neg_outputs, _ = self.aggregate(neg_samples, [self.features], self.dims, num_samples,
                 neg_support_sizes, batch_size=FLAGS.neg_sample_size, aggregators=self.aggregators,
                 concat=self.concat, model_size=self.model_size)
+        ###
 
         dim_mult = 2 if self.concat else 1
+
+        # TODO: link predict 수행? -> accuracy 계산을 위해 BipartiteEdgePredLayer로 전달 (하단 _accuracy 참고)
         self.link_pred_layer = BipartiteEdgePredLayer(dim_mult*self.dims[-1],
                 dim_mult*self.dims[-1], self.placeholders, act=tf.nn.sigmoid, 
                 bilinear_weights=False,
                 name='edge_predict')
 
+        # Normalize output
         self.outputs1 = tf.nn.l2_normalize(self.outputs1, 1)
         self.outputs2 = tf.nn.l2_normalize(self.outputs2, 1)
         self.neg_outputs = tf.nn.l2_normalize(self.neg_outputs, 1)
@@ -383,6 +402,7 @@ class SampleAndAggregate(GeneralizedModel):
         self.opt_op = self.optimizer.apply_gradients(clipped_grads_and_vars)
 
     def _loss(self):
+        # Aggregator의 loss 계산 
         for aggregator in self.aggregators:
             for var in aggregator.vars.values():
                 self.loss += FLAGS.weight_decay * tf.nn.l2_loss(var)
@@ -392,7 +412,7 @@ class SampleAndAggregate(GeneralizedModel):
 
     def _accuracy(self):
         # shape: [batch_size]
-        aff = self.link_pred_layer.affinity(self.outputs1, self.outputs2)
+        aff = self.link_pred_layer.affinity(self.outputs1, self.outputs2) # https://github.com/williamleif/GraphSAGE/issues/95 (why use link_pred_layer)
         # shape : [batch_size x num_neg_samples]
         self.neg_aff = self.link_pred_layer.neg_cost(self.outputs1, self.neg_outputs)
         self.neg_aff = tf.reshape(self.neg_aff, [self.batch_size, FLAGS.neg_sample_size])
