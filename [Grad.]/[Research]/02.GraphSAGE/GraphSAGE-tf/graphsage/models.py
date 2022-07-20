@@ -17,6 +17,11 @@ FLAGS = flags.FLAGS
 # https://github.com/tkipf/gcn
 # which itself was very inspired by the keras package
 
+# For testing
+import sys
+sess = tf.compat.v1.Session()
+
+# GCN과 동일
 class Model(object):
     def __init__(self, **kwargs):
         allowed_kwargs = {'name', 'logging', 'model_size'}
@@ -93,7 +98,7 @@ class Model(object):
         saver.restore(sess, save_path)
         print("Model restored from file: %s" % save_path)
 
-
+# Loss 구분 이외엔 GCN과 동일
 class MLP(Model):
     """ A standard multi-layer perceptron """
     def __init__(self, placeholders, dims, categorical=True, **kwargs):
@@ -148,6 +153,7 @@ class MLP(Model):
     def predict(self):
         return tf.nn.softmax(self.outputs)
 
+# 전통적인 layer로 구축할 수 없는 모델을 구축하기 위한 class
 class GeneralizedModel(Model):
     """
     Base class for models that aren't constructed from traditional, sequential layers.
@@ -166,6 +172,7 @@ class GeneralizedModel(Model):
             self._build()
 
         # Store model variables for easy access
+        # 계산그래프에서 정의된 variable collection을 저장 (for easy access)
         variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
         self.vars = {var.name: var for var in variables}
 
@@ -177,6 +184,7 @@ class GeneralizedModel(Model):
 
 # SAGEInfo is a namedtuple that specifies the parameters 
 # of the recursive GraphSAGE layers
+ ## 반복되는(recursive한) GraphSAGE 층을 명시(구분)하기 위한 namedtuple
 SAGEInfo = namedtuple("SAGEInfo",
     ['layer_name', # name of the layer (to get feature embedding etc.)
      'neigh_sampler', # callable neigh_sampler constructor
@@ -207,7 +215,19 @@ class SampleAndAggregate(GeneralizedModel):
             - model_size: one of "small" and "big"
             - identity_dim: Set to positive int to use identity features (slow and cannot generalize, but better accuracy)
         '''
+        '''
+            - placeholders : 필요한 정보들을 담고있는 저장체? 통? 이라고 생각하면 됨
+            - features : node feature (ndarray) 
+            - adj : 노드의 연결 정보가 담긴 list로 구성된 ndarray -> 인접행렬 -> A
+            - degrees : 노드의 차수 정보를 담고있는 ndarray -> D
+            - layer_infos : 앞서 정의한 SAGEInfo -> 반복되는 GraphSAGE층을 구분하기 위해 layer간의 정보를 담은 구조체
+            - concat : recursive iteration을 하는 동안 concat을 할지, 말지? default=True
+            - aggregator_type : 자기 자신과 이웃의 representation을 집계할 layer 안의 aggregatory type 정의
+            - identity_dim : 항등 feature를 사용 여부 default=0
+        '''
         super(SampleAndAggregate, self).__init__(**kwargs)
+
+        # Agg. type 정의
         if aggregator_type == "mean":
             self.aggregator_cls = MeanAggregator
         elif aggregator_type == "seq":
@@ -222,22 +242,32 @@ class SampleAndAggregate(GeneralizedModel):
             raise Exception("Unknown aggregator: ", self.aggregator_cls)
 
         # get info from placeholders...
+         ## Batch 단위로 수행되므로, placeholder의 batch들을 input으로 받는다.
+         ### FIXME: 
+          ## batch에는 random sampling된 input feature들이 들어가있다?
+          ## 각 batch B^{k}는 다음 batch B^{k+1}에 포함된 노드 v의 representation을 계산하기 위한 node들이 포함되어 있음.
         self.inputs1 = placeholders["batch1"]
         self.inputs2 = placeholders["batch2"]
         self.model_size = model_size
         self.adj_info = adj
+
         if identity_dim > 0:
            self.embeds = tf.get_variable("node_embeddings", [adj.get_shape().as_list()[0], identity_dim])
         else:
            self.embeds = None
+        
+        # train in featureless mode (identity features for nodes)
+        ## FIXME: 노드에 기본적으로 feature가 없다고 가정하고 항등 feature로 적용
         if features is None: 
             if identity_dim == 0:
                 raise Exception("Must have a positive value for identity feature dimension if no input features given.")
             self.features = self.embeds
+        ## 노드에 feature가 있으면 그대로 지정
         else:
             self.features = tf.Variable(tf.constant(features, dtype=tf.float32), trainable=False)
             if not self.embeds is None:
                 self.features = tf.concat([self.embeds, self.features], axis=1)
+
         self.degrees = degrees
         self.concat = concat
 
@@ -247,6 +277,7 @@ class SampleAndAggregate(GeneralizedModel):
         self.placeholders = placeholders
         self.layer_infos = layer_infos
 
+        # Optimizer (FIXME: paper는 minibatch를 위해 SGD를 쓴다고 하지 않았던가..?)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=FLAGS.learning_rate)
 
         self.build()
@@ -258,20 +289,64 @@ class SampleAndAggregate(GeneralizedModel):
             inputs: batch inputs
             batch_size: the number of inputs (different for batch inputs and negative samples).
         """
+        """
+        연산을 위해 주변 이웃들 중 일부를 sampling
+        """
         
         if batch_size is None:
             batch_size = self.batch_size
+        
+        # print(inputs) # Tensor("batch1:0", dtype=int32)
+        # print(tf.print(inputs, output_stream=sys.stderr))
+        # print(type(inputs)) # <class 'tensorflow.python.framework.ops.Tensor'>
+
+
+        # Batch로 들어온 내용(자신과 이웃 노드의 representation 정보들) -> sample
+        # [<tf.Tensor 'batch1:0' shape=<unknown> dtype=int32>]
         samples = [inputs]
+
         # size of convolution support at each layer per node
         support_size = 1
         support_sizes = [support_size]
+
+        # 서로 다른 layer 수 만큼 loop를 반복
         for k in range(len(layer_infos)):
-            t = len(layer_infos) - k - 1
+            t = len(layer_infos) - k - 1 # flag
+
+            # 현재의 support size와 해당 layer에서의 sample수를 곱해 support size를 재 정의
+            ## FIXME: support? GCN에선 K차수(hidden layer 갯수)로 이해. 여기도 같은의미?
             support_size *= layer_infos[t].num_samples
+
+            # print('Support Size is')
+            # print(support_size) # 10 (with toy_ppi)
+            # print('#############'*8 + '\n')
+
+            # sampler 구조 정의 -> batch 안에서 이웃을 어떻게 sample 할 것인지?
+            ## 추후 XXX_train.py에서 neigh_samplers.py를 import 한 후, layer를 설계할때 layer_info에 전달
             sampler = layer_infos[t].neigh_sampler
+
+            # sampling된 이웃 노드
             node = sampler((samples[k], layer_infos[t].num_samples))
+            
+            # print('Values in node')
+            # # tf.print(node, output_stream=sys.stderr)
+            # print(node) 
+            # # print(tf.keras.backend.get_value(node)) # feed_dict를 해줘야..
+            # print('#############'*8 + '\n')
+
+            # FIXME: sampling된 이웃 노드를 sample에 새로 추가?
+            ## (neigh_samplers.py : Assumes that adj lists are padded with random re-sampling)
+            ## re-sample된 정보들을 다시 추가해, 집계과정에서 focusing?
             samples.append(tf.reshape(node, [support_size * batch_size,]))
             support_sizes.append(support_size)
+
+            # print('Samples is ')
+            # print(samples) # [<tf.Tensor 'batch1:0' shape=<unknown> dtype=int32>, <tf.Tensor 'Reshape:0' shape=(?,) dtype=int32>, <tf.Tensor 'Reshape_1:0' shape=(?,) dtype=int32>]
+            # tf.print(samples, output_stream=sys.stderr) # [tensor, tensor, tensor]
+            # print('\nSupport Size is ')
+            # print(support_sizes) # [1, 10, 250]
+            # print('#############'*8 + '\n')
+
         return samples, support_sizes
 
 
@@ -291,7 +366,11 @@ class SampleAndAggregate(GeneralizedModel):
         Returns:
             The hidden representation at the final layer for all nodes in batch
         """
+        """
+        각 layer마다 aggregate 수행 -> 이웃의 hidden representation을 집계, next layer의 hidden representation을 계산 (h^{k-1}들을 가지고 h^{k}를 계산)
 
+            - samples : 
+        """
         if batch_size is None:
             batch_size = self.batch_size
 

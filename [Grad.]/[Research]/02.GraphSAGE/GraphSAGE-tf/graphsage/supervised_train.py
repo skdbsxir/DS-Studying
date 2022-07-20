@@ -16,6 +16,16 @@ from graphsage.utils import load_data
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 
+"""
+For disable error message
+"""
+import warnings
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+warnings.filterwarnings('ignore')
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 # Set random seed
 seed = 123
 np.random.seed(seed)
@@ -291,6 +301,9 @@ def train(train_data, test_data=None):
             # Print results
             avg_time = (avg_time * total_steps + time.time() - t) / (total_steps + 1)
 
+            # FIXME: For comfortable debugging
+            break
+
             if total_steps % FLAGS.print_every == 0:
                 train_f1_mic, train_f1_mac = calc_f1(labels, outs[-1])
                 print("Iter:", '%04d' % iter, 
@@ -311,6 +324,8 @@ def train(train_data, test_data=None):
         if total_steps > FLAGS.max_total_steps:
                 break
     
+    # FIXME: For debugging (remove later)
+    """
     print("Optimization Finished!")
     sess.run(val_adj_info.op)
     val_cost, val_f1_mic, val_f1_mac, duration = incremental_evaluate(sess, model, minibatch, FLAGS.batch_size)
@@ -328,6 +343,7 @@ def train(train_data, test_data=None):
     with open(log_dir() + "test_stats.txt", "w") as fp:
         fp.write("loss={:.5f} f1_micro={:.5f} f1_macro={:.5f}".
                 format(val_cost, val_f1_mic, val_f1_mac))
+    """
 
 def main(argv=None):
     print("Loading training data..")
