@@ -369,8 +369,15 @@ class SampleAndAggregate(GeneralizedModel):
         """
         각 layer마다 aggregate 수행 -> 이웃의 hidden representation을 집계, next layer의 hidden representation을 계산 (h^{k-1}들을 가지고 h^{k}를 계산)
 
-            - samples : 
+            - samples : 각 layer에서 conv를 위해 다양한 hop만큼 떨어진 sample들의 집합 => conv를 위해 hop=1,2,... 만큼 떨어진 이웃 노드들의 집합(list)
+                        len(samples) = # of layers + 1
+                        각각의 원소는 node index를 의미하는 vector
+            - input_features : 여러 hop만클 떨어진 sample 각각의 feature (initial representation)
+            - support_sizes : 각 layer로부터 정보를 수집할 노드의 수 # FIXME: 선택할 이웃의 수?
+
+        Return은 batch안의 모든 노드들에 대한 마지막 layer에서의 hidden representation -> h^{k}
         """
+        print(tf.Session().run(samples[0]))
         if batch_size is None:
             batch_size = self.batch_size
 
@@ -394,7 +401,7 @@ class SampleAndAggregate(GeneralizedModel):
                 else:
                     aggregator = self.aggregator_cls(dim_mult*dims[layer], dims[layer+1],
                             dropout=self.placeholders['dropout'], 
-                            name=name, concat=concat, model_size=model_size)
+                            name=name, concat=concat, model_size=model_size) 
                 aggregators.append(aggregator)
             else:
                 aggregator = aggregators[layer]
