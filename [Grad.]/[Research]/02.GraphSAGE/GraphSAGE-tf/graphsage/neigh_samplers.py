@@ -17,6 +17,7 @@ class UniformNeighborSampler(Layer):
     Uniformly samples neighbors.
     Assumes that adj lists are padded with random re-sampling
     """
+    # 연결된 정보 (인접행렬)을 입력으로 받아, 그 안에서 random하게 연결된 이웃을 sampling.
     def __init__(self, adj_info, **kwargs):
         super(UniformNeighborSampler, self).__init__(**kwargs)
         self.adj_info = adj_info

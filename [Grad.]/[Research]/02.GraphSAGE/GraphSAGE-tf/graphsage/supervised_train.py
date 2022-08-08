@@ -185,6 +185,9 @@ def train(train_data, test_data=None):
         layer_infos = [SAGEInfo("node", sampler, FLAGS.samples_1, 2*FLAGS.dim_1),
                             SAGEInfo("node", sampler, FLAGS.samples_2, 2*FLAGS.dim_2)]
 
+        # print(num_classes) # 121
+        # print(features.shape) # (14756, 50)
+        # print(adj_info.shape) # (14756, 128)
         model = SupervisedGraphsage(num_classes, placeholders, 
                                      features,
                                      adj_info,

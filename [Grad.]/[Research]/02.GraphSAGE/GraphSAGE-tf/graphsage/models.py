@@ -377,7 +377,7 @@ class SampleAndAggregate(GeneralizedModel):
 
         Return은 batch안의 모든 노드들에 대한 마지막 layer에서의 hidden representation -> h^{k}
         """
-        print(tf.Session().run(samples[0]))
+        # print(tf.Session().run(samples[0]))
         if batch_size is None:
             batch_size = self.batch_size
 
