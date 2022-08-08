@@ -165,12 +165,14 @@ def construct_feed_dict(features, support, labels, labels_mask, placeholders):
     return feed_dict
 
 # Paper 식(4) : 식(3)의 직접연산 문제를 해결하기 위해, g_theta를 근사화 하는 과정.
+# http://dsba.korea.ac.kr/seminar/?mod=document&uid=1329 : pdf 중 ChebyNet 파트 참고
+## FIXME: T_k 가 adjacency를 내포하므로, 차수를 늘려서 좀더 정교하게 연결 정보를 fix?
 def chebyshev_polynomials(adj, k):
     """Calculate Chebyshev polynomials up to order k. Return a list of sparse matrices (tuple representation)."""
     print("Calculating Chebyshev polynomials up to order {}...".format(k))
 
     adj_normalized = normalize_adj(adj) # normalize된 A (D^(-1/2)AD^(-1/2))를 계산
-    print(adj_normalized)
+    # print(adj_normalized)
     laplacian = sp.eye(adj.shape[0]) - adj_normalized # Laplacian Matrix 계산 (L = I_N - D^(-1/2)AD^(-1/2))
     largest_eigval, _ = eigsh(laplacian, 1, which='LM') # ???? --> lambda_max 계산. denotes the largest eigenvalue of L.
     scaled_laplacian = (2. / largest_eigval[0]) * laplacian - sp.eye(adj.shape[0]) # ~A를 계산
@@ -189,8 +191,10 @@ def chebyshev_polynomials(adj, k):
 
     # k차수까지의 체비셰프 식 계산
     # t_k 안에는 sparse matrix들이 들어있게 된다.
+    # T2 부터 Tk까지 계산
     for i in range(2, k+1):
         t_k.append(chebyshev_recurrence(t_k[-1], t_k[-2], scaled_laplacian))
 
+    print(len(t_k)) # same as num_supports in train.py
     # t_k를 tuple 형태로 반환
     return sparse_to_tuple(t_k)
