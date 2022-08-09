@@ -84,7 +84,7 @@ def load_data(dataset_str):
     labels[indices] = ty
 
     
-    # Build adjacancy matrix A
+    # Build adjacancy matrix A (ndarray)
     adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph)).toarray()
     
 
@@ -111,7 +111,11 @@ def load_data(dataset_str):
     y_train, y_val, y_test, train_mask, val_mask, test_mask = \
         torch.from_numpy(y_train), torch.from_numpy(y_val), torch.from_numpy(y_test), \
         torch.from_numpy(train_mask), torch.from_numpy(val_mask), torch.from_numpy(test_mask)
+    # print(features.size())
+    # print(np.count_nonzero(features))
+    # sparsity = 1. - (np.count_nonzero(features) / float(np.array(features).size))
+    # print(sparsity) # (cora) feature matrix sparsity : 0.9873
 
     return adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask
 
-load_data('cora')
+# load_data('cora')
