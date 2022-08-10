@@ -4,6 +4,8 @@ import os
 import pickle # to load datasets
 import torch
 
+from utils import sparse_matrix_to_torch_sparse_tensor
+
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -84,9 +86,9 @@ def load_data(dataset_str):
     labels[indices] = ty
 
     
-    # Build adjacancy matrix A (ndarray)
-    adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph)).toarray()
-    
+    # Build adjacancy matrix A (scipy sparse array : csr matrix)
+    adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+    adj = sparse_matrix_to_torch_sparse_tensor(adj)
 
     # train-val-test splitting & masking
     idx_train = range(len(y)) # 140 (0~140)
@@ -107,7 +109,7 @@ def load_data(dataset_str):
 
 
     # Transform data as torch tensors
-    features = torch.from_numpy(normalize_feature(features))
+    features = torch.FloatTensor(normalize_feature(features))
     y_train, y_val, y_test, train_mask, val_mask, test_mask = \
         torch.from_numpy(y_train), torch.from_numpy(y_val), torch.from_numpy(y_test), \
         torch.from_numpy(train_mask), torch.from_numpy(val_mask), torch.from_numpy(test_mask)
