@@ -4,6 +4,7 @@ GCN layer 정의
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.parameter as Parameter
 import torch.nn.functional as F
 from datasets import load_data
 
@@ -28,8 +29,8 @@ def preprocess_adj(adj:np.array):
 
     return adj_normalized
 
-adj, _, _, _, _, _, _, _ = load_data('cora')
-preprocess_adj(adj)
+# adj, _, _, _, _, _, _, _ = load_data('cora')
+# preprocess_adj(adj)
 
 class GraphConvolution(nn.Module):
     """Simple GCN layer"""
@@ -39,10 +40,10 @@ class GraphConvolution(nn.Module):
 
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = nn.parameter(torch.FloatTensor(in_features, out_features))
+        self.weight = Parameter(torch.FloatTensor([in_features, out_features]))
         
         if bias:
-            self.bias = nn.parameter(torch.FloatTensor(out_features))
+            self.bias = Parameter(torch.FloatTensor([out_features]))
         else:
             self.register_parameter('bias', None) # bias=False인 경우 bias 등록
         

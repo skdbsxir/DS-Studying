@@ -25,8 +25,7 @@ class GCN(nn.Module):
         # # 원 저자의 말대로라면 이게 1개. (그래야 output까지 해서 총 2개.)
         # for _, (num_feature, num_hidden) in enumerate(zip(layers[:-1], layers[1:])):
         #     self.GraphConvLayers.append(GraphConvolution(num_feature, num_hidden))
-
-        self.output = GraphConvolution(layers[-1], num_class)
+        # self.output = GraphConvolution(layers[-1], num_class)
 
         self.dropout = dropout
 
