@@ -4,6 +4,7 @@ Train GCN model
 import time
 import argparse
 import numpy as np
+# import wandb # later
 
 import torch
 import torch.nn as nn
@@ -11,7 +12,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 from models import GCN
-from utils import accuracy
+from utils import accuracy, calc_loss
 from datasets import load_data
 
 parser = argparse.ArgumentParser()
@@ -19,7 +20,7 @@ parser = argparse.ArgumentParser()
 # Arguments
 # FIXME: need to add CUDA setting 
 parser.add_argument('--dataset', type=str, default='cora', help='Dataset to train')
-parser.add_argument('--seed', type=int, default=62, help='Random seed')
+parser.add_argument('--seed', type=int, default=42, help='Random seed')
 parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to train')
 parser.add_argument('--lr', type=float, default=0.01, help='Initial learning rate')
 parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay (L2 loss on params)')
@@ -53,20 +54,23 @@ def train(epoch):
     model.train()
 
     optimizer.zero_grad()
-    model.train()
     
     output = model(features, adj)
 
-    loss_train = F.nll_loss(output, y_train, train_mask)
+    # loss_train = F.nll_loss(output, y_train, train_mask)
+    # loss_train = F.cross_entropy(output, y_train, train_mask)
+    loss_train = calc_loss(output, y_train, train_mask)
     acc_train = accuracy(output, y_train, train_mask)
 
     with torch.no_grad():
         model.eval()
         output_val = model(features, adj)
-        loss_val = F.nll_loss(output_val, y_val, val_mask)
+        # loss_val = F.nll_loss(output_val, y_val, val_mask)
+        # loss_val = F.cross_entropy(output, y_train, train_mask)
+        loss_val = calc_loss(output, y_val, val_mask)
         acc_val = accuracy(output_val, y_val, val_mask)
 
-    print(f'Epoch : {epoch+1:04d}', f'loss_train : {loss_train:.4f}', f'acc_train : {acc_train:.4f}', f'loss_val : {loss_val:.4f}', f'time : {time.time()-t:.4f}s')
+    print(f'Epoch : {epoch+1:04d}', f'loss_train : {loss_train:.4f}', f'acc_train : {acc_train:.4f}', f'loss_val : {loss_val:.4f}', f'acc_val : {acc_val:.4f}', f'time : {time.time()-t:.4f}s')
 
     loss_train.backward()
     optimizer.step()
@@ -75,7 +79,8 @@ def train(epoch):
 def test():
     model.eval()
     output = model(features, adj)
-    loss_test = F.nll_loss(output, y_test, test_mask)
+    # loss_test = F.nll_loss(output, y_test, test_mask)
+    loss_test = calc_loss(output, y_test, test_mask)
     acc_test = accuracy(output, y_test, test_mask)
     print('Test set results : ', f'loss : {loss_test.item():.4f}', f'accuracy : {acc_test.item():.4f}')
 
