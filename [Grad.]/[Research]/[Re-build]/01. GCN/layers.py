@@ -4,33 +4,7 @@ GCN layer 정의
 import numpy as np
 import torch
 import torch.nn as nn
-# import torch.nn.parameter as Parameter
 import torch.nn.functional as F
-from datasets import load_data
-
-def normalize_adj(adj:np.array):
-    """Symmetrically normalize adjacency matrix"""
-    rowsum = np.array(adj.sum(1)) # degree matrix D의 구성을 위해 adj의 각 행별로 sum 수행.
-    D_inv_sqrt = np.power(rowsum, -0.5) # D^(-1/2) 계산 (이는 현재 rowsum을 수행했으므로, 1차원 vector 형태.)
-    D_inv_sqrt[np.isinf(D_inv_sqrt)] = 0. # 위 연산에서 inf인 부분은 0으로 replace.
-    D_inv_sqrt = np.diag(D_inv_sqrt) # 1차원 vector형태인 D^(-1/2)를 diagonal matrix로 변환 --> 구하고자 하는 최종 degree matrix 가 된다.
-    result = np.dot(D_inv_sqrt, np.dot(adj, D_inv_sqrt)) # 구하고자 하는 최종 DAD
-
-    return result
-
-def preprocess_adj(adj:np.array):
-    """Preprocess adj by adding self-connection"""
-    adj_normalized = normalize_adj(adj + np.eye(adj.shape[0])) # Identity matrix I_N(np.eye(adj.shape[0]))을 더해 self-connection을 추가.
-
-    # print(adj_normalized.shape)
-    # # print(np.count_nonzero(adj_normalized))
-    # sparsity = 1. - (np.count_nonzero(adj_normalized) / float(adj_normalized.size))
-    # print(sparsity) # (cora) adj matrix sparsity : 0.9981
-
-    return adj_normalized
-
-# adj, _, _, _, _, _, _, _ = load_data('cora')
-# preprocess_adj(adj)
 
 class GraphConvolution(nn.Module):
     """Simple GCN layer"""
@@ -57,7 +31,6 @@ class GraphConvolution(nn.Module):
     
     def forward(self, input, adj):
         """layer-wise propagation rule (Z=DAD*X*W)"""
-
         XW = torch.mm(input, self.weight) # X*W
         Z = torch.spmm(adj, XW) # DAD * XW
 
