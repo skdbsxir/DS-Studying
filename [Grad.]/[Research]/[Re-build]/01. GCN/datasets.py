@@ -29,6 +29,25 @@ def sample_mask(idx, l):
     mask[idx] = 1
     return np.array(mask, dtype=np.bool)
 
+def normalize_adj(adj:np.array):
+    """Symmetrically normalize adjacency matrix"""
+    rowsum = np.array(adj.sum(1)) # degree matrix D의 구성을 위해 adj의 각 행별로 sum 수행.
+    D_inv_sqrt = np.power(rowsum, -0.5) # D^(-1/2) 계산 (이는 현재 rowsum을 수행했으므로, 1차원 vector 형태.)
+    D_inv_sqrt[np.isinf(D_inv_sqrt)] = 0. # 위 연산에서 inf인 부분은 0으로 replace.
+    D_inv_sqrt = np.diag(D_inv_sqrt) # 1차원 vector형태인 D^(-1/2)를 diagonal matrix로 변환 --> 구하고자 하는 최종 degree matrix 가 된다.
+    result = np.dot(D_inv_sqrt, np.dot(adj, D_inv_sqrt)) # 구하고자 하는 최종 DAD
+
+    return result
+
+def preprocess_adj(adj:np.array):
+    """Preprocess adj by adding self-connection"""
+    adj_normalized = normalize_adj(adj + np.eye(adj.shape[0])) # Identity matrix I_N(np.eye(adj.shape[0]))을 더해 self-connection을 추가.
+
+    # sparsity = 1. - (np.count_nonzero(adj_normalized) / float(adj_normalized.size))
+    # print(sparsity) # (cora) adj matrix sparsity : 0.9981
+
+    return adj_normalized
+
 # Kipf's PyTorch implementation -> only cora
 # original src : https://github.com/zhulf0804/GCN.PyTorch/blob/master/datasets.py
     ## shape에 대한 comment는 모두 cora 기준. 
@@ -87,7 +106,8 @@ def load_data(dataset_str):
 
     
     # Build adjacancy matrix A (scipy sparse array : csr matrix)
-    adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+    adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph)).toarray()
+    adj = preprocess_adj(adj)
     adj = sparse_matrix_to_torch_sparse_tensor(adj)
 
     # train-val-test splitting & masking
