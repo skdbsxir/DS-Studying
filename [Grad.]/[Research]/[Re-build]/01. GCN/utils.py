@@ -4,6 +4,7 @@ Utility functions
 import torch
 import torch.nn as nn
 import numpy as np
+from scipy import sparse
 
 
 class Loss(nn.Module):
@@ -49,7 +50,7 @@ def sparse_matrix_to_torch_sparse_tensor(sparse_matrix):
 
     # adj는 현재 scipy의 csr_matrix
     # coo_matrix로 변환 후 sparse tensor로 변환
-    sparse_matrix = sparse_matrix.tocoo().astype(np.float32)
+    sparse_matrix = sparse.csr_matrix(sparse_matrix).tocoo().astype(np.float32)
     indices = torch.from_numpy(np.vstack((sparse_matrix.row, sparse_matrix.col)).astype(np.int64))
     values = torch.from_numpy(sparse_matrix.data)
     shape = torch.Size(sparse_matrix.shape)
