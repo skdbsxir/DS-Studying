@@ -6,13 +6,9 @@ https://pytorch-geometric.readthedocs.io/en/latest/notes/create_gnn.html#the-mes
 https://pytorch-geometric.readthedocs.io/en/latest/notes/create_dataset.html
 https://pytorch-geometric.readthedocs.io/en/latest/notes/load_csv.html
 """
-import os
 import numpy as np
 
-import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 
 import torch_geometric.nn as pyg_nn
 import torch_geometric.transforms as T
@@ -73,6 +69,6 @@ class CustomGCN(pyg_nn.MessagePassing):
         # 추가할 것이 없다면 생성 안해도 propagate가 호출해서 사용함.
         return aggr_out
 
-test_model = CustomGCN(32, 16)
-print(test_model.state_dict()['linear.weight'].shape)
-print(test_model.state_dict()['linear.bias'].shape)
+# test_model = CustomGCN(32, 16)
+# print(test_model.state_dict()['linear.weight'].shape)
+# print(test_model.state_dict()['linear.bias'].shape)
