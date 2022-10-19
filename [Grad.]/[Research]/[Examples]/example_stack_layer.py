@@ -24,3 +24,5 @@ from torch_geometric.data import DataLoader
 class GNNStack(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(GNNStack, self).__init__()
+
+        self.convs = nn.ModuleList()
