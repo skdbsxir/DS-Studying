@@ -109,7 +109,10 @@ embeddings_SAGE = SAGEUtils.SAGE_train(model_SAGE, data, epochs)
 test_acc_SAGE = SAGEUtils.SAGET_test(model_SAGE, data)
 
 print(f'GCN test acc : {test_acc_GCN:.4f}')
+print(embeddings_GCN.shape)
 print(f'GraphSAGE test acc : {test_acc_SAGE:.4f}')
+print(embeddings_SAGE.shape)
+
 
 
 # embeddings_GCN = GCN_train()
