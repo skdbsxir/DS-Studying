@@ -11,6 +11,7 @@ TODO: GCNConv, SAGEConv
     > Data class의 edge_index를 coo/csc/csr로 변환할 수 있고, 데이터 안에 self loop가 있는지, 고립된 node가 있는지도 확인이 가능.
 - PyG NeighborLoader : https://pytorch-geometric.readthedocs.io/en/latest/modules/loader.html#torch_geometric.loader.NeighborLoader
     > GraphSAGE에서 소개한 Mini-batch Neighbor Sampling을 수행.
+    > TODO: NeighborLoader 에서 num_neighbors 인자가 정확히 뭘 지정하는것인가? -1을 두면 모든 노드를 고려(공식문서), 범위 지정은? 해당 범위만큼의 이웃을 가지는 노드만을 고려?
 """
 import os
 
@@ -23,7 +24,7 @@ import torch_geometric.nn as pyg_nn
 from torch_geometric.datasets import Planetoid
 from torch_geometric.loader import NeighborLoader # for GraphSAGE's neigh sampler
 # import example_various_utils as Utils
-from example_various_utils import GCNUtils
+from example_various_utils import GCNUtils, SAGEUtils
 
 dataset = Planetoid(root=os.getcwd() + '/dataset/cora', name='cora')
 
@@ -35,6 +36,7 @@ dataset = Planetoid(root=os.getcwd() + '/dataset/cora', name='cora')
 # print(dataset[0]) # Data(x=[2708, 1433], edge_index=[2, 10556], y=[2708], train_mask=[2708], val_mask=[2708], test_mask=[2708])
 # print(dataset[0].items()) # 위 Data의 내용물 Tensor들
 # print(dataset[0].x.shape[0]) # num_node : 2708
+# print(dataset[0].num_nodes) # num_node : 2708 (x.shape와 동일.)
 # print(dataset[0].has_isolated_nodes()) # False
 # print(dataset[0].has_self_loops()) # False
 
@@ -66,16 +68,10 @@ class GCN(nn.Module):
 # GraphSAGE class
 class GraphSAGE(nn.Module):
     """2-layer"""
-    def __init__(self, data, input_dim, hidden_dim, output_dim):
+    def __init__(self, input_dim, hidden_dim, output_dim):
         super().__init__()
         self.GSage1 = pyg_nn.SAGEConv(in_channels=input_dim, out_channels=hidden_dim, normalize=True, aggr='mean') # Aggregator (mean, max, lstm)
         self.GSage2 = pyg_nn.SAGEConv(in_channels=hidden_dim, out_channels=output_dim, normalize=True, aggr='mean')
-        self.loader = NeighborLoader(
-            data=data,
-            num_neighbors=[5, 10], # denotes how much neighbors are sampled for each node in each iteration.
-            batch_size = 16, # total batch size
-            input_nodes=data.train_mask # default = None
-        )
 
     def forward(self, data):
         X, edge_index = data.x, data.edge_index
@@ -96,16 +92,25 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 data = dataset[0].to(device)
 
 model_GCN = GCN(input_dim=dataset.num_node_features, hidden_dim=hidden_dim, output_dim=dataset.num_classes).to(device)
-model_SAGE = GraphSAGE(data=data, input_dim=dataset.num_node_features, hidden_dim=hidden_dim, output_dim=dataset.num_classes).to(device)
+model_SAGE = GraphSAGE(input_dim=dataset.num_node_features, hidden_dim=hidden_dim, output_dim=dataset.num_classes).to(device)
 # print(model_GCN)
 # print(model_SAGE)
 
 
 # embeddings_GCN = Utils.GCN_train(model_GCN, data, 200)
 # test_acc_GCN = Utils.GCN_test(model_GCN, data)
-embeddings_GCN = GCNUtils.GCN_train(model_GCN, data, 200)
+
+epochs = 200
+
+embeddings_GCN = GCNUtils.GCN_train(model_GCN, data, epochs)
 test_acc_GCN = GCNUtils.GCN_test(model_GCN, data)
+
+embeddings_SAGE = SAGEUtils.SAGE_train(model_SAGE, data, epochs)
+test_acc_SAGE = SAGEUtils.SAGET_test(model_SAGE, data)
+
 print(f'GCN test acc : {test_acc_GCN:.4f}')
+print(f'GraphSAGE test acc : {test_acc_SAGE:.4f}')
+
 
 # embeddings_GCN = GCN_train()
 # print(embeddings_GCN.shape)
