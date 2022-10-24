@@ -102,6 +102,9 @@ class SAGEUtils():
                 optimizer.zero_grad()
                 
                 #FIXME: embedding_list를 여기서 구하고 GCN처럼 어떻게 전체 embedding을 구할까? 우선 다 하고나서 shape을 찍어보자.
+                # GCN : [541600, 32]
+                # SAGE : [31271898, 32]
+                #FIXME: sage on graph-level task 한번 찾아보고, embedding을 어떻게 구해서 활용하는지 찾아볼 것.
                 embeddings, output = model(batch)
                 embedding_list_inbatch.append(embeddings)
 
