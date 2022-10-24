@@ -9,12 +9,8 @@ https://pytorch-geometric.readthedocs.io/en/latest/notes/load_csv.html
 import numpy as np
 
 import torch.nn as nn
-
 import torch_geometric.nn as pyg_nn
-import torch_geometric.transforms as T
 import torch_geometric.utils as pyg_utils
-from torch_geometric.datasets import TUDataset, Planetoid
-from torch_geometric.data import DataLoader
 
 
 # dataset = TUDataset(root=os.getcwd() + '/datasets/ENZYMES', name='ENZYMES')
