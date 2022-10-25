@@ -15,6 +15,7 @@ def accuracy(pred, label):
     """calculate accuracy (classification acc)"""
     return ((pred == label).sum() / len(label)).item()
 
+#FIXME: (221025) embedding_list 작업 잠시 중단.
 class GCNUtils():
     def __init__(self):
         super().__init__()
@@ -24,7 +25,7 @@ class GCNUtils():
         optimizer = optim.Adam(model.parameters(), lr=0.01)
 
         # store embeddings (to cat after-trained final embedding)
-        embedding_list = []
+        # embedding_list = []
 
         model.train()
 
@@ -32,8 +33,9 @@ class GCNUtils():
             optimizer.zero_grad()
 
             # model returns 2 (embedding, output)
-            embeddings, output = model(data)
-            embedding_list.append(embeddings)
+            # embeddings, output = model(data)
+            _, output = model(data)
+            # embedding_list.append(embeddings)
 
             # Calculate train loss & acc
             train_loss = F.nll_loss(output[data.train_mask], data.y[data.train_mask])
@@ -52,9 +54,9 @@ class GCNUtils():
                 print(f'[Epoch {epoch:>3}] Train loss : {train_loss.item():.4f} || Train acc : {train_acc:.4f} || Val loss : {val_loss.item():.4f} || Val acc : {val_acc:.4f}')
 
         # Concat all embeddings to get final embedding
-        embeddings = torch.cat(embedding_list, dim=0)
+        # embeddings = torch.cat(embedding_list, dim=0)
 
-        return embeddings
+        # return embeddings
 
     @torch.no_grad()
     def GCN_test(model:nn.Module, data:Data):
@@ -66,7 +68,8 @@ class GCNUtils():
         test_acc = accuracy(pred[data.test_mask], data.y[data.test_mask])
 
         return test_acc
-    
+
+#FIXME: (221025) embedding_list 작업 잠시 중단.
 class SAGEUtils():
     def __init__(self):
         super().__init__()
@@ -76,15 +79,15 @@ class SAGEUtils():
         optimizer = optim.Adam(model.parameters(), lr=0.01)
 
         # store embeddings (to cat after-trained final embedding)
-        embedding_list_inbatch = []
-        embedding_list = []
+        # embedding_list_inbatch = []
+        # embedding_list = []
 
         # random-walk based mini-batch neighbor sampling
         loader = NeighborLoader(
             data=data,
             # TODO: num_neighbors가 뭐냐. 정확히.
-            num_neighbors=[5, 10], # denotes how much neighbors are sampled for each node in each iteration.
-            batch_size = 64, # total batch size
+            num_neighbors=[5, 15], # denotes how much neighbors are sampled for each node in each iteration.
+            batch_size = 32, # total batch size
             input_nodes=data.train_mask # default = None
         )
 
@@ -105,8 +108,9 @@ class SAGEUtils():
                 # GCN : [541600, 32]
                 # SAGE : [31271898, 32]
                 #FIXME: sage on graph-level task 한번 찾아보고, embedding을 어떻게 구해서 활용하는지 찾아볼 것.
-                embeddings, output = model(batch)
-                embedding_list_inbatch.append(embeddings)
+                # embeddings, output = model(batch)
+                _, output = model(batch)
+                # embedding_list_inbatch.append(embeddings)
 
                 train_loss = F.nll_loss(output[batch.train_mask], batch.y[batch.train_mask])
                 acc += accuracy(output[batch.train_mask].argmax(dim=1), batch.y[batch.train_mask])
@@ -121,14 +125,14 @@ class SAGEUtils():
                 val_loss += F.nll_loss(output[batch.val_mask], batch.y[batch.val_mask])
                 val_acc += accuracy(output[batch.val_mask].argmax(dim=1), batch.y[batch.val_mask])
             
-            embedding_list.append(torch.cat(embedding_list_inbatch, dim=0)) # 각 batch에서의 cat된 embedding을 list에 저장. -> 후에 cat해서 최종 embedding get? 
+            # embedding_list.append(torch.cat(embedding_list_inbatch, dim=0)) # 각 batch에서의 cat된 embedding을 list에 저장. -> 후에 cat해서 최종 embedding get? 
 
             if epoch % 10 == 0:
                 print(f'[Epoch {epoch:>3}] Train loss : {total_loss/len(loader):.4f} || Train acc : {acc/len(loader):.4f} || Val loss : {val_loss/len(loader):.4f} || Val acc : {val_acc/len(loader):.4f}')
 
-        embeddings = torch.cat(embedding_list, dim=0)
+        # embeddings = torch.cat(embedding_list, dim=0)
 
-        return embeddings
+        # return embeddings
 
     @torch.no_grad()
     def SAGET_test(model:nn.Module, data:Data):

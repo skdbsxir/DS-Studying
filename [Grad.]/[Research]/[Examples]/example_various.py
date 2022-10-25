@@ -22,8 +22,6 @@ import torch.optim as optim
 
 import torch_geometric.nn as pyg_nn
 from torch_geometric.datasets import Planetoid
-from torch_geometric.loader import NeighborLoader # for GraphSAGE's neigh sampler
-# import example_various_utils as Utils
 from example_various_utils import GCNUtils, SAGEUtils
 
 dataset = Planetoid(root=os.getcwd() + '/dataset/cora', name='cora')
@@ -40,7 +38,7 @@ dataset = Planetoid(root=os.getcwd() + '/dataset/cora', name='cora')
 # print(dataset[0].has_isolated_nodes()) # False
 # print(dataset[0].has_self_loops()) # False
 
-hidden_dim = 32
+hidden_dim = 32 # CPU : 128(killed) // GPU : 64(OOM)
 
 # GCN class
 class GCN(nn.Module):
@@ -102,18 +100,18 @@ model_SAGE = GraphSAGE(input_dim=dataset.num_node_features, hidden_dim=hidden_di
 
 epochs = 200
 
-embeddings_GCN = GCNUtils.GCN_train(model_GCN, data, epochs)
+# embeddings_GCN = GCNUtils.GCN_train(model_GCN, data, epochs)
+_ = GCNUtils.GCN_train(model_GCN, data, epochs)
 test_acc_GCN = GCNUtils.GCN_test(model_GCN, data)
 
-embeddings_SAGE = SAGEUtils.SAGE_train(model_SAGE, data, epochs)
+# embeddings_SAGE = SAGEUtils.SAGE_train(model_SAGE, data, epochs)
+_ = SAGEUtils.SAGE_train(model_SAGE, data, epochs)
 test_acc_SAGE = SAGEUtils.SAGET_test(model_SAGE, data)
 
 print(f'GCN test acc : {test_acc_GCN:.4f}')
-print(embeddings_GCN.shape)
+# print(embeddings_GCN.shape)
 print(f'GraphSAGE test acc : {test_acc_SAGE:.4f}')
-print(embeddings_SAGE.shape)
-
-
+# print(embeddings_SAGE.shape)
 
 # embeddings_GCN = GCN_train()
 # print(embeddings_GCN.shape)
