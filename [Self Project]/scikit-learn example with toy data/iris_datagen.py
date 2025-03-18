@@ -1,6 +1,7 @@
+# data source: https://www.kaggle.com/datasets/uciml/iris
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
 
 data_file = './data/Iris.csv'
 df = pd.read_csv(data_file)
