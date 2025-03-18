@@ -1,2 +1,13 @@
 .ipynb_checkpoints
-UseData
+
+# dataset repo
+UseData/
+data/
+
+# files
+*.csv
+*.pkl
+
+# test files
+_*.py
+_*.sh
